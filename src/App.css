@@ -1,38 +1,324 @@
+/* Importando fonte moderna do Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Variáveis Padrão (Light Mode) */
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-color: #f3f4f6;
+  --card-bg: #ffffff;
+  --text-main: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --error-color: #ef4444;
+  --success-color: #10b981;
+  --input-bg: #f9fafb;
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Variáveis Dark Mode */
+[data-theme="dark"] {
+  --primary-color: #3b82f6;
+  --primary-hover: #60a5fa;
+  --bg-color: #111827;      /* Fundo bem escuro */
+  --card-bg: #1f2937;       /* Cards cinza escuro */
+  --text-main: #f9fafb;     /* Texto quase branco */
+  --text-secondary: #9ca3af;
+  --border-color: #374151;
+  --error-color: #f87171;
+  --input-bg: #374151;
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  height: 100vh; /* Altura fixa na tela */
+  overflow: hidden; /* Remove barra de rolagem da janela */
+}
+
 .App {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.app-layout {
   display: flex;
   flex-direction: column;
+  height: 100vh; /* Garante que o layout ocupe exatamente a tela */
+  overflow: hidden;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.main-content {
+  flex: 1; /* Faz o conteúdo ocupar o espaço disponível, empurrando o footer */
+  width: 100%;
+  overflow-y: auto; /* Permite rolagem apenas aqui dentro se necessário */
+  padding: 1rem; /* Espaçamento interno para não colar nas bordas em telas pequenas */
+  display: flex; /* Habilita o Flexbox para centralizar os filhos */
+  flex-direction: column; /* Garante a direção correta do fluxo */
+}
+
+.nav{
+  display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease;
+}
+
+/* Estilo para o Logo na barra de navegação */
+.nav-logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--primary-color) !important; /* Força a cor do logo */
+  margin-right: auto; /* Empurra os outros itens para a direita se houver espaço, ou separa do grupo */
+}
+
+/* Estilo geral para links dentro da navegação */
+.nav a {
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+}
+
+.nav a:hover {
+  color: var(--primary-color);
+}
+
+/* Estilo específico para o botão "Entrar" na navegação */
+.nav .nav-btn-primary {
+  background-color: var(--primary-color);
+  color: #fff !important;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  margin-left: auto; /* Garante que o botão fique na extrema direita */
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.nav .nav-btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
+}
+
+.theme-btn {
+  margin-left: auto;
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  width: auto;
+  margin-top: 0;
+  box-shadow: none;
+}
+.theme-btn:hover {
+  background-color: var(--bg-color);
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.container {
+  max-width: 480px; /* Largura mais focada para formulários */
+  margin: auto; /* O segredo: 'auto' dentro de um flex container centraliza V e H */
+  width: 100%; /* Garante que o card ocupe a largura disponível até o max-width */
+  padding: 2.5rem;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: background-color 0.3s ease;
+}
+
+h2 {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-main);
+  text-align: center;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  display: block;
+  color: var(--text-main);
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--input-bg);
+  color: var(--text-main);
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Estilo para o Select igual ao input */
+select.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: var(--input-bg);
+  color: var(--text-main);
+  font-size: 1rem;
+}
+
+input:focus {
+  outline: none;
+  background-color: var(--card-bg);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+button {
+  width: 100%;
+  padding: 0.875rem;
+  background-color: var(--primary-color);
   color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+  letter-spacing: 0.025em;
 }
 
-.App-link {
-  color: #61dafb;
+button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4), 0 4px 6px -2px rgba(37, 99, 235, 0.2);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
 }
+
+.error {
+  background-color: #fef2f2;
+  color: var(--error-color);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid #fecaca;
+  text-align: center;
+}
+
+/* --- Estilos do Dashboard Financeiro --- */
+.dashboard-card {
+  background: var(--bg-color);
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid var(--border-color); /* Removida borda explícita para usar a cor variável */
+  box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.05);
+}
+
+.total-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--error-color); /* Vermelho pois é gasto */
+  margin: 0;
+}
+
+.chart-container {
+  position: relative;
+  height: 250px; /* Altura reduzida para caber melhor */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Layout lado a lado para o Dashboard */
+.dashboard-row {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap; /* Quebra linha em celular */
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-row > * {
+  flex: 1;
+  min-width: 250px; /* Tamanho mínimo antes de quebrar linha */
+}
+
+/* --- Estilos da Lista de Histórico --- */
+.expense-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.expense-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0.75rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.expense-info { display: flex; flex-direction: column; gap: 0.25rem; text-align: left; }
+.expense-date { font-size: 0.85rem; color: var(--text-secondary); }
+.expense-value { font-weight: 600; color: var(--error-color); margin-right: 1rem; }
+
+.btn-delete {
+  width: auto;
+  padding: 0.5rem;
+  margin: 0;
+  background: transparent;
+  color: #ef4444;
+  box-shadow: none;
+}
+.btn-delete:hover { background: #fee2e2; transform: none; box-shadow: none; }
+
+/* --- Footer Profissional --- */
+.footer {
+  text-align: center;
+  padding: 1rem; /* Padding reduzido para ocupar menos espaço */
+  background-color: var(--card-bg);
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+}
+
+.footer p {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+}
+
+.footer strong {
+  color: var(--primary-color);
+}
+
+.footer-role { font-size: 0.9rem; font-weight: 500; }
+.footer-copy { font-size: 0.8rem; opacity: 0.8; margin-top: 1rem !important;}
