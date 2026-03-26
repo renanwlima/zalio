@@ -80,19 +80,42 @@ export default function Dashboard() {
     return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  const handleExportCSV = () => {
-    const allData = [...entradas, ...transacoes];
-    if (allData.length === 0) return alert('Nenhum dado para exportar.');
-    const headers = ['Data,Tipo,Categoria/Descricao,Valor'];
-    const rows = allData.map(t => `${t.date || ''},${t.tipo || ''},${t.categoria || t.descricao || ''},${t.valor}`);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `zalio_relatorio_${format(currentDate, 'MM_yyyy')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+ const handleExportCSV = () => {
+ const allData = [...entradas, ...transacoes].sort((a, b) => new Date(a.date) - new Date(b.date));
+ if (allData.length === 0) {
+ alert('Nenhum dado para exportar neste mês.');
+ return;
+    }
+
+ const escapeCsvCell = (cell) => {
+ const str = String(cell === null || cell === undefined ? '' : cell);
+ if (str.search(/("|,|\n)/g) >= 0) {
+ return `"${str.replace(/"/g, '""')}"`;
+      }
+ return str;
+    };
+
+ const headers = ['Data', 'Tipo', 'Descrição', 'Categoria', 'Valor'].join(',');
+
+ const rows = allData.map(t => {
+ const rowData = [
+        t.date,
+        t.tipo,
+        t.descricao,
+        t.categoria || '-', // Usa '-' se não houver categoria (caso das entradas)
+        t.valor
+      ];
+ return rowData.map(escapeCsvCell).join(',');
+    });
+
+ const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join('\n');
+ const encodedUri = encodeURI(csvContent);
+ const link = document.createElement('a');
+ link.setAttribute('href', encodedUri);
+ link.setAttribute('download', `zalio_relatorio_${format(currentDate, 'MM_yyyy')}.csv`);
+ document.body.appendChild(link);
+ link.click();
+ document.body.removeChild(link);
   };
 
   // Cálculo do total
@@ -181,7 +204,7 @@ export default function Dashboard() {
 
   return (
     <main className="container" style={{ maxWidth: '1250px', padding: '1rem 2rem 2rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '1rem', marginBottom: '2rem', width: '100%' }}>
+      <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '1rem', marginBottom: '2rem', width: '100%' }}>
         
         {/* Esquerda: Calendário */}
         <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
@@ -222,10 +245,10 @@ export default function Dashboard() {
         </div>
       </div>
       
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'stretch' }}>
+      <div className="dashboard-layout-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'stretch' }}>
         
         {/* Coluna Esquerda: Cards */}
-        <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="dashboard-column-print" style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
           <div className="dashboard-card" style={{ padding: '2rem 1.5rem 1.2rem', margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <h3 style={{ margin: '0 0 0.5rem 0' }}>Total de Entradas</h3>
@@ -241,7 +264,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', width: '100%' }}>
+          <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', width: '100%' }}>
             <Link to="/adicionar-entrada" style={{ width: '100%', textDecoration: 'none' }}>
               <button style={{ backgroundColor: '#10b981', color: '#fff', width: '100%', margin: 0, padding: '0.8rem', fontSize: '0.95rem', fontWeight: 'bold', boxSizing: 'border-box' }}>+ Entrada</button>
             </Link>
@@ -291,9 +314,9 @@ export default function Dashboard() {
         </div>
 
         {/* Coluna Direita: Gráficos e Legenda */}
-        <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', padding: '1.5rem 2rem', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', border: '1px solid var(--border-color)' }}>
+        <div className="dashboard-column-print" style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', padding: '1.5rem 2rem', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', border: '1px solid var(--border-color)' }}>
           
-          <div className="chart-controls" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div className="chart-controls no-print" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <label htmlFor="dataType" style={{ fontWeight: '600', margin: 0 }}>Dados:</label>
               <select 
