@@ -35,7 +35,6 @@ export default function AddIncome() {
       alert('Erro ao salvar a entrada: ' + error.message);
       return;
     }
-    alert(transacaoEditada ? 'Entrada atualizada com sucesso!' : 'Entrada salva com sucesso!');
     navigate('/'); // Volta para o Dashboard
   }, [descricao, valor, data, transacaoEditada, navigate]);
 

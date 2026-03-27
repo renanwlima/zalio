@@ -30,7 +30,6 @@ export default function FirstAccess(){
       // if (error) {
       //   throw new Error(error.message);
       // }
-      alert('Senha definida com sucesso!');
       nav('/'); // Redireciona para a página inicial ou de login
     } catch (err) {
       console.error('Erro ao definir senha:', err.message);

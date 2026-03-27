@@ -7,10 +7,11 @@ export default function DespesasFixas() {
   const [valor, setValor] = useState('');
   const [vencimento, setVencimento] = useState('');
   const [editandoId, setEditandoId] = useState(null);
+  const [menuAbertoId, setMenuAbertoId] = useState(null);
 
   const carregarDespesas = useCallback(async () => {
     try {
-      const { data, error } = await supabase.from('despesas_fixas').select('*').order('dia_vencimento', { ascending: true });
+      const { data, error } = await supabase.from('despesas_fixas').select('*').order('vencimento', { ascending: true });
       if (error) {
         console.error('Erro ao buscar despesas:', error.message);
       } else {
@@ -24,6 +25,16 @@ export default function DespesasFixas() {
 
   useEffect(() => {
     carregarDespesas();
+
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.action-menu-container')) {
+        setMenuAbertoId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [carregarDespesas]);
 
   const limparFormulario = () => {
@@ -38,22 +49,18 @@ export default function DespesasFixas() {
     const payload = {
       nome: nome,
       valor: Number(valor), // Garante que o valor é um número
-      dia_vencimento: Number(vencimento), // Garante que o vencimento é um número
+      vencimento: Number(vencimento), // Garante que o vencimento é um número
     };
 
     if (editandoId) {
       const { error } = await supabase.from('despesas_fixas').update(payload).eq('id', editandoId);
       if (error) {
         alert('Erro ao atualizar despesa: ' + error.message);
-      } else {
-        alert('Despesa atualizada com sucesso!');
       }
     } else {
       const { error } = await supabase.from('despesas_fixas').insert([payload]);
       if (error) {
         alert('Erro ao registrar despesa: ' + error.message);
-      } else {
-        alert('Despesa registrada com sucesso!');
       }
     }
 
@@ -65,7 +72,7 @@ export default function DespesasFixas() {
     setEditandoId(item.id);
     setNome(item.nome);
     setValor(item.valor);
-    setVencimento(item.dia_vencimento);
+    setVencimento(item.vencimento);
   };
 
   const handleDelete = async (id) => {
@@ -73,10 +80,8 @@ export default function DespesasFixas() {
       const { error } = await supabase.from('despesas_fixas').delete().eq('id', id);
       if (error) {
         alert('Erro ao excluir despesa: ' + error.message);
-      } else {
-        alert('Despesa excluída com sucesso!');
-        carregarDespesas();
       }
+      carregarDespesas();
     }
   };
 
@@ -113,27 +118,39 @@ export default function DespesasFixas() {
         </div>
 
         {/* Lista de Despesas */}
-        <div className="dashboard-card" style={{ flex: '2 1 400px', padding: '1.5rem' }}>
+        <div className="dashboard-card" style={{ flex: '2 1 400px', padding: '1.5rem', height: '500px', overflowY: 'auto' }}>
           <h3 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Contas Cadastradas</h3>
           {despesas.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Nenhuma despesa fixa registrada.</p>
           ) : (
             <ul className="expense-list">
-              {despesas.map(item => (
-                <li key={item.id} className="expense-item">
-                  <div className="expense-info">
+              {despesas.map((item, index) => {
+                return (
+                <li key={item.id} className="expense-item" style={{ padding: '0.8rem 1rem', position: 'relative' }}>
+                  <div className="expense-info" style={{ flexGrow: 1 }}>
                     <strong>{item.nome}</strong>
-                    <span className="expense-date">Vence todo dia {item.dia_vencimento}</span>
+                    <span className="expense-date">Vence todo dia {item.vencimento}</span>
                   </div>
-                  <div className="expense-actions">
+                  <div className="expense-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <span className="expense-value" style={{ color: '#ef4444' }}>
                       {Number(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </span>
-                    <button onClick={() => handleEdit(item)} title="Editar" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', marginRight: '10px' }}>✏️</button>
-                    <button onClick={() => handleDelete(item.id)} title="Excluir" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>🗑️</button>
+                    <div className="action-menu-container">
+                      <button onClick={() => setMenuAbertoId(prev => prev === item.id ? null : item.id)} className="action-menu-trigger" title="Opções">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                        </svg>
+                      </button>
+                      {menuAbertoId === item.id && (
+                        <div className="action-menu up">
+                          <button onClick={() => { handleEdit(item); setMenuAbertoId(null); }} className="action-menu-button" style={{ borderBottom: '1px solid var(--border-color)' }}>Editar</button>
+                          <button onClick={() => { handleDelete(item.id); setMenuAbertoId(null); }} className="action-menu-button" style={{ color: 'var(--error-color)' }}>Excluir</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </li>
-              ))}
+              )})}
             </ul>
           )}
         </div>

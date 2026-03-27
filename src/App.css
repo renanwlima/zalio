@@ -32,6 +32,9 @@
 
 * {
   box-sizing: border-box;
+  /* Estilos de scrollbar para Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-secondary) var(--bg-color);
 }
 
 body {
@@ -323,7 +326,101 @@ button:active {
 .footer-role { font-size: 0.9rem; font-weight: 500; }
 .footer-copy { font-size: 0.8rem; opacity: 0.8; margin-top: 1rem !important;}
 
-/* Adicione este código ao final do seu arquivo App.css */
+/* --- Estilos do Menu de Ações (3 pontinhos) --- */
+.action-menu-container {
+  position: relative;
+}
+
+.action-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  width: 120px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.action-menu.up {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.action-menu-trigger {
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  margin: 0;
+  cursor: pointer;
+  color: var(--text-secondary);
+  box-shadow: none;
+  width: auto;
+  margin-top: 0;
+  line-height: 1; /* Alinha o SVG verticalmente */
+}
+
+.action-menu-trigger:hover {
+  background-color: var(--bg-color);
+  transform: none;
+  box-shadow: none;
+}
+
+.action-menu-trigger:focus, .action-menu-trigger:focus-visible {
+  box-shadow: none;
+  outline: none;
+}
+
+.action-menu-button {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  margin: 0;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-main);
+  display: block;
+  box-shadow: none;
+  letter-spacing: normal;
+  border-radius: 0;
+}
+
+.action-menu-button:hover {
+  background-color: var(--bg-color);
+  transform: none;
+  box-shadow: none;
+}
+/* --- Estilos da Barra de Rolagem Moderna (Webkit) --- */
+::-webkit-scrollbar {
+  width: 8px; /* Largura da barra de rolagem vertical */
+  height: 8px; /* Altura da barra de rolagem horizontal */
+}
+
+/* Fundo da barra de rolagem (o "trilho") */
+::-webkit-scrollbar-track {
+  background: var(--bg-color); /* Usa a cor de fundo da sua aplicação para o trilho */
+  border-radius: 10px;
+}
+
+/* O "arrastador" da barra de rolagem (o "thumb") */
+::-webkit-scrollbar-thumb {
+  background: var(--text-secondary); /* Usa uma cor secundária do texto para o arrastador */
+  border-radius: 10px;
+  border: 2px solid var(--bg-color); /* Adiciona uma borda com a cor de fundo da app para um efeito de "padding" */
+}
+
+/* Arrastador ao passar o mouse */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-main); /* Cor do texto principal ao passar o mouse */
+}
 
 @media print {
   /* Evita que o texto suma (branco no branco) caso o usuário exporte no modo escuro */
@@ -340,7 +437,6 @@ button:active {
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    color-adjust: exact !important;
   }
 
   /* --- Reset Geral e Layout da Página --- */
@@ -421,12 +517,12 @@ button:active {
     background-color: #e0e0e0 !important; /* Cor de fundo para a trilha da barra */
     border-color: #c0c0c0 !important;
     -webkit-print-color-adjust: exact !important;
-    color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .progress-bar-fill {
     -webkit-print-color-adjust: exact !important;
-    color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Ajusta o container do gráfico para não ultrapassar a página */
@@ -440,12 +536,12 @@ button:active {
   /* Ajusta a legenda customizada e os quadrados de cor */
   .custom-legend, .legend-item {
     -webkit-print-color-adjust: exact !important;
-    color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .legend-color-square {
     -webkit-print-color-adjust: exact !important;
-    color-adjust: exact !important;
+    print-color-adjust: exact !important;
     border: 1px solid #ccc !important; /* Adiciona uma borda para visibilidade em fundos claros */
   }
 
@@ -456,6 +552,6 @@ button:active {
   /* Força a impressão de cores de fundo e texto */
   .chart-container, .total-value, canvas, .dashboard-card {
     -webkit-print-color-adjust: exact !important;
-    color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }

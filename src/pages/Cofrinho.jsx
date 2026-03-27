@@ -8,10 +8,14 @@ export default function Cofrinho() {
   const [saldoAtual, setSaldoAtual] = useState('');
   const [editandoId, setEditandoId] = useState(null);
   
+  const [menuAbertoId, setMenuAbertoId] = useState(null);
   const [depositandoId, setDepositandoId] = useState(null);
   const [valorDeposito, setValorDeposito] = useState('');
+  const [animatedPercs, setAnimatedPercs] = useState({}); // Adicionado: Estado para as porcentagens animadas
+  const [isLoading, setIsLoading] = useState(true); // Mantido: Estado de carregamento
 
   const carregarCofrinhos = useCallback(async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase.from('cofrinho').select('*').order('created_at', { ascending: true }); //
       if (error) {
@@ -27,8 +31,33 @@ export default function Cofrinho() {
 
   useEffect(() => {
     carregarCofrinhos();
-  }, [carregarCofrinhos]);
+  }, [carregarCofrinhos]); // Este useEffect chama carregarCofrinhos apenas uma vez ao montar o componente
+  
+  useEffect(() => {
+    // Este useEffect lida com o cálculo das porcentagens animadas e o estado de carregamento
+    const timer = setTimeout(() => {
+      const percs = {};
+      cofrinhos.forEach(item => {
+        percs[item.id] = item.meta > 0 ? Math.min((item.saldo / item.meta) * 100, 100) : 0;
+      });
+      setAnimatedPercs(percs);
+      setIsLoading(false); // Define isLoading como false após as porcentagens serem calculadas
+    }, 100); // Pequeno delay para garantir que a UI renderize com 0% antes de animar
 
+    return () => clearTimeout(timer);
+  }, [cofrinhos]); // Este efeito é executado quando os dados dos cofrinhos mudam.
+
+  useEffect(() => { // Novo useEffect para o handleClickOutside
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.action-menu-container')) {
+        setMenuAbertoId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []); // Este efeito é executado uma vez ao montar e limpa ao desmontar.
   const handleSalvar = useCallback(async (e) => {
     e.preventDefault();
     // Garante que meta e saldo sejam números, com fallback para 0 se forem vazios ou inválidos
@@ -141,23 +170,26 @@ export default function Cofrinho() {
             {cofrinhos.length === 0 ? (
                 <p style={{ textAlign: 'center', color: 'var(--text-secondary)', margin: 0 }}>Nenhum cofrinho criado ainda.</p>
             ) : (
-              cofrinhos.map(item => {
-                const perc = item.meta > 0 ? Math.min((item.saldo / item.meta) * 100, 100) : 0;
+              cofrinhos.map((item, index) => {
+                // Usa animatedPercs para a animação da barra de progresso
+                const perc = animatedPercs[item.id] !== undefined ? animatedPercs[item.id] : 0;
+                const openUp = index >= cofrinhos.length - 2 && cofrinhos.length > 2;
                 return (
-                  <div key={item.id} style={{ padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                  <div key={item.id} style={{ position: 'relative', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                     <h3 style={{ margin: 0, fontSize: '1.3rem', textAlign: 'left' }}>{item.nome || 'Meu Cofrinho'}</h3>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => handleEdit(item)} style={{ background: 'none', border: 'none', padding: '0.3rem', margin: 0, cursor: 'pointer', width: 'auto', minWidth: 'auto', height: 'auto', boxShadow: 'none', color: '#3b82f6' }} title="Editar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <div className="action-menu-container">
+                      <button onClick={() => setMenuAbertoId(prev => prev === item.id ? null : item.id)} className="action-menu-trigger" title="Opções">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
                         </svg>
                       </button>
-                      <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', padding: '0.3rem', margin: 0, cursor: 'pointer', width: 'auto', minWidth: 'auto', height: 'auto', boxShadow: 'none', color: '#ef4444' }} title="Excluir">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      {menuAbertoId === item.id && (
+                        <div className={`action-menu ${openUp ? 'up' : ''}`}>
+                          <button onClick={() => { handleEdit(item); setMenuAbertoId(null); }} className="action-menu-button" style={{ borderBottom: '1px solid var(--border-color)'}}>Editar</button>
+                          <button onClick={() => { handleDelete(item.id); setMenuAbertoId(null); }} className="action-menu-button" style={{ color: 'var(--error-color)' }}>Excluir</button>
+                        </div>
+                      )}
                     </div>
                   </div>
 

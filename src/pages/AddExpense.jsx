@@ -41,7 +41,6 @@ export default function AddExpense() {
       alert('Erro ao salvar o gasto: ' + error.message);
       return;
     }
-    alert(transacaoEditada ? 'Gasto atualizado com sucesso!' : 'Gasto salvo com sucesso!');
     navigate('/'); // Volta para o Dashboard
   }, [form, transacaoEditada, navigate]);
 
