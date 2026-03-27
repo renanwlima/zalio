@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
@@ -7,32 +7,37 @@ export default function AddIncome() {
   const location = useLocation();
   const transacaoEditada = location.state?.transaction;
 
-  const [description, setDescription] = useState(transacaoEditada?.descricao || '');
-  const [amount, setAmount] = useState(transacaoEditada?.valor || '');
-  const [date, setDate] = useState(transacaoEditada?.date || new Date().toISOString().split('T')[0]);
+  const [descricao, setDescricao] = useState(transacaoEditada?.descricao || '');
+  const [valor, setValor] = useState(transacaoEditada?.valor || '');
+  const [data, setData] = useState(transacaoEditada?.date || new Date().toISOString().split('T')[0]);
 
-  const handleSubmit = async (e) => {
+  const handleDescriptionChange = useCallback((e) => setDescricao(e.target.value), []);
+  const handleAmountChange = useCallback((e) => setValor(e.target.value), []);
+  const handleDateChange = useCallback((e) => setData(e.target.value), []);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    if (!descricao || !valor) return;
     
     const payload = {
-      descricao: description,
-      valor: Number(amount),
-      date: date,
+      descricao: descricao,
+      valor: Number(valor), // Garante que o valor é um número
+      date: data,
       tipo: 'entrada'
     };
 
-    const { error } = transacaoEditada 
-      ? await supabase.from('transactions').update(payload).eq('id', transacaoEditada.id)
-      : await supabase.from('transactions').insert([payload]);
+    const { error } = transacaoEditada //
+      ? await supabase.from('transactions').update(payload).eq('id', transacaoEditada.id) //
+      : await supabase.from('transactions').insert([payload]); //
 
     if (error) {
       console.error('Erro no Supabase:', error);
       alert('Erro ao salvar a entrada: ' + error.message);
       return;
     }
-
+    alert(transacaoEditada ? 'Entrada atualizada com sucesso!' : 'Entrada salva com sucesso!');
     navigate('/'); // Volta para o Dashboard
-  };
+  }, [descricao, valor, data, transacaoEditada, navigate]);
 
   return (
     <div className="container">
@@ -40,18 +45,18 @@ export default function AddIncome() {
       <form onSubmit={handleSubmit}>
         <div className="grid">
           <div>
-            <label htmlFor="description">Descrição</label>
-            <input type="text" id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ex: Salário, Freelance, Venda..." required />
+            <label htmlFor="descricao">Descrição</label>
+            <input type="text" id="descricao" value={descricao} onChange={handleDescriptionChange} placeholder="Ex: Salário, Freelance, Venda..." required />
           </div>
           
           <div>
-            <label htmlFor="amount">Valor (R$)</label>
-            <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" step="0.01" min="0" required />
+            <label htmlFor="valor">Valor (R$)</label>
+            <input type="number" id="valor" value={valor} onChange={handleAmountChange} placeholder="0.00" step="0.01" min="0" required />
           </div>
 
           <div>
-            <label htmlFor="date">Data</label>
-            <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            <label htmlFor="data">Data</label>
+            <input type="date" id="data" value={data} onChange={handleDateChange} required />
           </div>
 
           <button type="submit">{transacaoEditada ? 'Atualizar Entrada' : 'Registrar Entrada'}</button>

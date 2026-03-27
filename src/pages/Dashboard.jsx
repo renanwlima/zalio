@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { 
   Chart as ChartJS, 
@@ -33,90 +33,97 @@ export default function Dashboard() {
   const [hideValues, setHideValues] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [currentDate]);
-
-
-  const fetchTransactions = async () => {
+  // Usando useCallback para memorizar a função fetchTransactions
+  const fetchTransactions = useCallback(async () => {
     setIsLoading(true); // Começa a carregar
     
     const start = startOfMonth(currentDate).toISOString();
     const end = endOfMonth(currentDate).toISOString();
 
-    // Busca todos os dados do Supabase ao mesmo tempo (em paralelo)
-    // Isso garante que o gráfico monte com tudo pronto de uma vez, disparando a animação perfeitamente!
-    const [resTransacoes, resFixas, resCofre] = await Promise.all([
-      supabase.from('transactions').select('*').gte('date', start).lte('date', end),
-      supabase.from('despesas_fixas').select('*'),
-      supabase.from('cofrinho').select('*')
-    ]);
+    try {
+      // Busca todos os dados do Supabase ao mesmo tempo (em paralelo)
+      // Isso garante que o gráfico monte com tudo pronto de uma vez, disparando a animação perfeitamente!
+      const [resTransacoes, resFixas, resCofre] = await Promise.all([
+        supabase.from('transactions').select('*').gte('date', start).lte('date', end), //
+        supabase.from('despesas_fixas').select('*'), //
+        supabase.from('cofrinho').select('*') //
+      ]);
 
-    if (resTransacoes.error) {
-      console.error('Erro ao buscar transações do Supabase:', resTransacoes.error);
-    } else if (resTransacoes.data) {
-      setTransacoes(resTransacoes.data.filter(t => t.tipo === 'saida'));
-      setEntradas(resTransacoes.data.filter(t => t.tipo === 'entrada'));
-    }
+      if (resTransacoes.error) {
+        console.error('Erro ao buscar transações do Supabase:', resTransacoes.error.message);
+      } else if (resTransacoes.data) {
+        setTransacoes(resTransacoes.data.filter(t => t.tipo === 'saida'));
+        setEntradas(resTransacoes.data.filter(t => t.tipo === 'entrada'));
+      }
 
-    if (resFixas.data) {
-      setDespesasFixas(resFixas.data);
-    }
+      if (resFixas.error) {
+        console.error('Erro ao buscar despesas fixas do Supabase:', resFixas.error.message);
+      } else if (resFixas.data) {
+        setDespesasFixas(resFixas.data);
+      }
 
-    if (resCofre.data) {
-      const totalSaldo = resCofre.data.reduce((acc, curr) => acc + Number(curr.saldo), 0);
-      const totalMeta = resCofre.data.reduce((acc, curr) => acc + Number(curr.meta), 0);
-      setCofrinho({ saldo: totalSaldo, meta: totalMeta });
+      if (resCofre.error) {
+        console.error('Erro ao buscar cofrinhos do Supabase:', resCofre.error.message);
+      } else if (resCofre.data) {
+        const totalSaldo = resCofre.data.reduce((acc, curr) => acc + Number(curr.saldo), 0);
+        const totalMeta = resCofre.data.reduce((acc, curr) => acc + Number(curr.meta), 0);
+        setCofrinho({ saldo: totalSaldo, meta: totalMeta });
+      }
+    } catch (err) {
+      console.error('Erro inesperado ao buscar dados:', err);
     }
-    
     setIsLoading(false); // Terminou de carregar, libera o gráfico!
-  };
+  }, [currentDate]); // Depende de currentDate
 
-  const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
-  const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]); // Adiciona fetchTransactions como dependência
+
+  const handlePrevMonth = useCallback(() => setCurrentDate(subMonths(currentDate, 1)), [currentDate]);
+  const handleNextMonth = useCallback(() => setCurrentDate(addMonths(currentDate, 1)), [currentDate]);
 
   const formatCurrency = (value) => {
     if (hideValues) return 'R$ *****';
     return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
- const handleExportCSV = () => {
- const allData = [...entradas, ...transacoes].sort((a, b) => new Date(a.date) - new Date(b.date));
- if (allData.length === 0) {
- alert('Nenhum dado para exportar neste mês.');
- return;
+ const handleExportCSV = useCallback(() => {
+    const allData = [...entradas, ...transacoes].sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (allData.length === 0) {
+      alert('Nenhum dado para exportar neste mês.');
+      return;
     }
 
- const escapeCsvCell = (cell) => {
- const str = String(cell === null || cell === undefined ? '' : cell);
- if (str.search(/("|,|\n)/g) >= 0) {
- return `"${str.replace(/"/g, '""')}"`;
+    const escapeCsvCell = (cell) => {
+      const str = String(cell === null || cell === undefined ? '' : cell);
+      if (str.search(/("|,|\n)/g) >= 0) {
+        return `"${str.replace(/"/g, '""')}"`;
       }
- return str;
+      return str;
     };
 
- const headers = ['Data', 'Tipo', 'Descrição', 'Categoria', 'Valor'].join(',');
+    const headers = ['Data', 'Tipo', 'Descrição', 'Categoria', 'Valor'].join(',');
 
- const rows = allData.map(t => {
- const rowData = [
+    const rows = allData.map(t => {
+      const rowData = [
         t.date,
         t.tipo,
         t.descricao,
         t.categoria || '-', // Usa '-' se não houver categoria (caso das entradas)
         t.valor
       ];
- return rowData.map(escapeCsvCell).join(',');
+      return rowData.map(escapeCsvCell).join(',');
     });
 
- const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join('\n');
- const encodedUri = encodeURI(csvContent);
- const link = document.createElement('a');
- link.setAttribute('href', encodedUri);
- link.setAttribute('download', `zalio_relatorio_${format(currentDate, 'MM_yyyy')}.csv`);
- document.body.appendChild(link);
- link.click();
- document.body.removeChild(link);
-  };
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `zalio_relatorio_${format(currentDate, 'MM_yyyy')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [entradas, transacoes, currentDate]);
 
   // Cálculo do total
   const totalFixas = despesasFixas.reduce((acc, curr) => acc + Number(curr.valor), 0);
@@ -208,12 +215,12 @@ export default function Dashboard() {
         
         {/* Esquerda: Calendário */}
         <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-card)', height: '40px', padding: '0 8px', borderRadius: '8px', border: '1px solid var(--border-color)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-            <button onClick={handlePrevMonth} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', outline: 'none', boxShadow: 'none', WebkitTapHighlightColor: 'transparent', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-color)', width: '30px', height: '100%', padding: 0, position: 'relative', top: '-8px' }}>&#10094;</button>
+          <div className="calendar-nav-container" style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-card)', height: '40px', padding: '0 8px', borderRadius: '8px', border: '1px solid var(--border-color)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <button onClick={handlePrevMonth} aria-label="Mês anterior" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', outline: 'none', boxShadow: 'none', WebkitTapHighlightColor: 'transparent', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-color)', width: '30px', height: '100%', padding: 0, position: 'relative', top: '-8px' }}>&#10094;</button>
             <span style={{ textTransform: 'capitalize', fontWeight: 'bold', width: '130px', textAlign: 'center', fontSize: '1rem', margin: 0 }}>
               {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
             </span>
-            <button onClick={handleNextMonth} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', outline: 'none', boxShadow: 'none', WebkitTapHighlightColor: 'transparent', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-color)', width: '30px', height: '100%', padding: 0, position: 'relative', top: '-8px' }}>&#10095;</button>
+            <button onClick={handleNextMonth} aria-label="Próximo mês" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', outline: 'none', boxShadow: 'none', WebkitTapHighlightColor: 'transparent', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-color)', width: '30px', height: '100%', padding: 0, position: 'relative', top: '-8px' }}>&#10095;</button>
           </div>
         </div>
 
@@ -232,6 +239,7 @@ export default function Dashboard() {
               onClick={() => setShowExportMenu(!showExportMenu)} 
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--text-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
               title="Opções de Exportação"
+              aria-label="Opções de Exportação"
             >
               ⋮
             </button>
@@ -276,18 +284,18 @@ export default function Dashboard() {
           {/* Orçamento do Mês (Gasto vs Recebido) */}
           <div className="dashboard-card" style={{ padding: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>Orçamento do Mês</h3>
-            <div style={{ width: '100%' }}>
+            <div className="budget-progress-container" style={{ width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', marginBottom: '0.8rem' }}>
                 <span>Gasto vs Recebido</span>
                 <span style={{ fontWeight: 500 }}>{formatCurrency(totalGasto)} / {formatCurrency(totalEntradas)}</span>
               </div>
-              <div style={{ height: '8px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+              <div className="progress-bar-track" style={{ height: '8px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                 {(() => {
                   const percentage = totalEntradas > 0 ? Math.min((totalGasto / totalEntradas) * 100, 100) : (totalGasto > 0 ? 100 : 0);
                   const isOver = totalGasto > totalEntradas && totalEntradas > 0;
                   const barColor = isOver ? '#ef4444' : (percentage > 80 ? '#f59e0b' : '#10b981');
                   return (
-                    <div style={{ height: '100%', width: `${percentage}%`, backgroundColor: barColor, transition: 'width 0.5s ease' }}></div>
+                    <div className="progress-bar-fill" style={{ height: '100%', width: `${percentage}%`, backgroundColor: barColor, borderTop: `8px solid ${barColor}`, boxSizing: 'border-box', transition: 'width 0.5s ease' }}></div>
                   );
                 })()}
               </div>
@@ -299,14 +307,14 @@ export default function Dashboard() {
             </div>
 
             {/* Cofrinho */}
-            <div style={{ width: '100%', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
+            <div className="piggy-bank-progress-container" style={{ width: '100%', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
               <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>Meu Cofrinho 🐷</h3>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', marginBottom: '0.8rem' }}>
                 <span>Guardado vs Meta</span>
                 <span style={{ fontWeight: 500 }}>{formatCurrency(valorCofrinho)} / {formatCurrency(metaCofrinho)}</span>
               </div>
-              <div style={{ height: '8px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                <div style={{ height: '100%', width: `${percCofrinho}%`, backgroundColor: '#3b82f6', transition: 'width 0.5s ease' }}></div>
+              <div className="progress-bar-track" style={{ height: '8px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                <div className="progress-bar-fill" style={{ height: '100%', width: `${percCofrinho}%`, backgroundColor: '#3b82f6', borderTop: '8px solid #3b82f6', boxSizing: 'border-box', transition: 'width 0.5s ease' }}></div>
               </div>
             </div>
           </div>
@@ -360,9 +368,9 @@ export default function Dashboard() {
                     {currentLabels.map((cat, index) => ({ cat, valor: currentData[index], color: currentColors[index] }))
                       .sort((a, b) => a.cat.localeCompare(b.cat))
                       .map(({ cat, valor, color }) => (
-                      <li key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+                      <li key={cat} className="legend-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.95rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                          <span style={{ display: 'inline-block', width: '14px', height: '14px', backgroundColor: color, borderRadius: '4px' }}></span>
+                          <span className="legend-color-square" style={{ display: 'inline-block', width: '14px', height: '14px', backgroundColor: color, border: `7px solid ${color}`, boxSizing: 'border-box', borderRadius: '4px' }}></span>
                           <span style={{ fontWeight: '500' }}>{cat}</span>
                         </div>
                         <strong style={{ opacity: 0.9 }}>{formatCurrency(valor)}</strong>

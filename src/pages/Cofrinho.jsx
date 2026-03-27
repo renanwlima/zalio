@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 
 export default function Cofrinho() {
@@ -11,19 +11,27 @@ export default function Cofrinho() {
   const [depositandoId, setDepositandoId] = useState(null);
   const [valorDeposito, setValorDeposito] = useState('');
 
-  useEffect(() => {
-    carregarCofrinhos();
+  const carregarCofrinhos = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.from('cofrinho').select('*').order('created_at', { ascending: true }); //
+      if (error) {
+        console.error('Erro ao buscar cofrinhos:', error.message);
+        // Opcional: alert('Não foi possível carregar os cofrinhos.');
+      } else if (data) {
+        setCofrinhos(data);
+      }
+    } catch (err) {
+      console.error('Erro inesperado ao carregar cofrinhos:', err);
+    }
   }, []);
 
-  const carregarCofrinhos = async () => {
-    const { data } = await supabase.from('cofrinho').select('*').order('created_at', { ascending: true });
-    if (data) {
-      setCofrinhos(data);
-    }
-  };
+  useEffect(() => {
+    carregarCofrinhos();
+  }, [carregarCofrinhos]);
 
-  const handleSalvar = async (e) => {
+  const handleSalvar = useCallback(async (e) => {
     e.preventDefault();
+    // Garante que meta e saldo sejam números, com fallback para 0 se forem vazios ou inválidos
     const payload = { 
       nome: nome || 'Meu Sonho', 
       meta: Number(meta),
@@ -32,36 +40,57 @@ export default function Cofrinho() {
     
     if (editandoId) {
       await supabase.from('cofrinho').update(payload).eq('id', editandoId);
+      // Adicionar tratamento de erro para update
     } else {
-      await supabase.from('cofrinho').insert([payload]);
+      const { error } = await supabase.from('cofrinho').insert([payload]); //
+      if (error) {
+        console.error('Erro ao criar cofrinho:', error.message);
+        alert('Erro ao criar cofrinho: ' + error.message);
+        return;
+      }
     }
     limparFormulario();
     carregarCofrinhos();
-  };
+  }, [nome, meta, saldoAtual, editandoId, carregarCofrinhos]);
 
-  const handleDepositar = async (e, id, saldoAntigo) => {
+  const handleDepositar = useCallback(async (e, id, saldoAntigo) => {
     e.preventDefault();
-    const novoSaldo = Number(saldoAntigo) + Number(valorDeposito);
-    await supabase.from('cofrinho').update({ saldo: novoSaldo }).eq('id', id);
+    const valorParaDepositar = Number(valorDeposito);
+    if (isNaN(valorParaDepositar) || valorParaDepositar <= 0) {
+      alert('Por favor, insira um valor de depósito válido.');
+      return;
+    }
+    const novoSaldo = Number(saldoAntigo) + valorParaDepositar;
+    const { error } = await supabase.from('cofrinho').update({ saldo: novoSaldo }).eq('id', id); //
+    if (error) {
+      console.error('Erro ao depositar:', error.message);
+      alert('Erro ao depositar: ' + error.message);
+      return;
+    }
     setDepositandoId(null);
     setValorDeposito('');
     carregarCofrinhos();
-  };
+  }, [valorDeposito, carregarCofrinhos]);
 
-  const handleEdit = (item) => {
+  const handleEdit = useCallback((item) => {
     setNome(item.nome || '');
     setMeta(item.meta);
     setSaldoAtual(item.saldo);
     setEditandoId(item.id);
     setDepositandoId(null);
-  };
+  }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = useCallback(async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este cofrinho?')) {
-      await supabase.from('cofrinho').delete().eq('id', id);
+      const { error } = await supabase.from('cofrinho').delete().eq('id', id); //
+      if (error) {
+        console.error('Erro ao excluir cofrinho:', error.message);
+        alert('Erro ao excluir cofrinho: ' + error.message);
+        return;
+      }
       carregarCofrinhos();
     }
-  };
+  }, [carregarCofrinhos]);
 
   const limparFormulario = () => {
     setNome(''); setMeta(''); setSaldoAtual(''); setEditandoId(null);

@@ -322,3 +322,140 @@ button:active {
 
 .footer-role { font-size: 0.9rem; font-weight: 500; }
 .footer-copy { font-size: 0.8rem; opacity: 0.8; margin-top: 1rem !important;}
+
+/* Adicione este código ao final do seu arquivo App.css */
+
+@media print {
+  /* Evita que o texto suma (branco no branco) caso o usuário exporte no modo escuro */
+  :root, [data-theme="dark"] {
+    --text-main: #000000 !important;
+    --text-secondary: #333333 !important;
+    --text-color: #000000 !important;
+    --bg-color: #ffffff !important;
+    --card-bg: #ffffff !important;
+    --border-color: #cccccc !important;
+  }
+
+  /* Força a impressão de cores de fundo para TODOS os elementos */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* --- Reset Geral e Layout da Página --- */
+  body {
+    font-size: 10pt; /* Reduz o tamanho da fonte base para impressão, ajustando unidades 'rem' */
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Esconde elementos que não devem aparecer na impressão */
+  .no-print, .footer, nav {
+    display: none !important;
+  }
+
+  /* Reseta o layout principal para um fluxo de bloco simples */
+  #root, .app-layout, .main-content {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    overflow: visible !important; /* Permite que o conteúdo flua na página de impressão */
+    height: auto !important;
+  }
+
+  /* Ajusta o container principal para impressão com margens de página */
+  .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 2cm 1.5cm !important; /* Adiciona margens de impressão (padrão A4) */
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: none !important;
+  }
+
+  /* --- Ajustes Específicos do Dashboard --- */
+
+  h2 {
+    font-size: 16pt; /* Tamanho mais apropriado para título de relatório */
+    margin-bottom: 1.5cm;
+    text-align: center;
+  }
+
+  /* Força o layout de colunas a ficar em bloco (uma embaixo da outra) */
+  .dashboard-layout-print {
+    display: block !important;
+    gap: 0 !important;
+  }
+
+  .dashboard-column-print {
+    width: 100% !important;
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-bottom: 1.5rem;
+    page-break-inside: avoid; /* Evita quebrar colunas no meio da página */
+    background: transparent !important;
+  }
+
+  /* Ajusta os cards */
+  .dashboard-card {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    padding: 0.8rem !important;
+    background: #f9f9f9 !important;
+  }
+
+  /* Reduz o tamanho das fontes grandes dos cards */
+  .total-value {
+    font-size: 1.8rem !important; /* Tamanho reduzido para não ficar exagerado */
+  }
+
+  /* Força a impressão das barras de progresso */
+  .progress-bar-track {
+    background-color: #e0e0e0 !important; /* Cor de fundo para a trilha da barra */
+    border-color: #c0c0c0 !important;
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  .progress-bar-fill {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Ajusta o container do gráfico para não ultrapassar a página */
+  .chart-container {
+    width: 100% !important; /* Ocupa a largura total disponível */
+    max-width: 100% !important;
+    height: 200px !important; /* Altura um pouco menor para economizar espaço */
+    margin-bottom: 1rem;
+  }
+
+  /* Ajusta a legenda customizada e os quadrados de cor */
+  .custom-legend, .legend-item {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  .legend-color-square {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    border: 1px solid #ccc !important; /* Adiciona uma borda para visibilidade em fundos claros */
+  }
+
+  /* Ajusta a legenda customizada */
+  .custom-legend { font-size: 9pt; }
+  .custom-legend h3 { font-size: 12pt; }
+
+  /* Força a impressão de cores de fundo e texto */
+  .chart-container, .total-value, canvas, .dashboard-card {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+}

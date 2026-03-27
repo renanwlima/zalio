@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CATEGORIAS } from '../services/storage';
 import { supabase } from '../supabaseClient';
@@ -16,11 +16,11 @@ export default function AddExpense() {
     data: transacaoEditada?.date || new Date().toISOString().split('T')[0] // Permite data retroativa
   });
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  }, [form]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (!form.descricao || !form.valor) return;
 
@@ -32,18 +32,18 @@ export default function AddExpense() {
       tipo: 'saida'
     };
 
-    const { error } = transacaoEditada 
-      ? await supabase.from('transactions').update(payload).eq('id', transacaoEditada.id)
-      : await supabase.from('transactions').insert([payload]);
+    const { error } = transacaoEditada //
+      ? await supabase.from('transactions').update(payload).eq('id', transacaoEditada.id) //
+      : await supabase.from('transactions').insert([payload]); //
 
     if (error) {
       console.error('Erro no Supabase:', error);
       alert('Erro ao salvar o gasto: ' + error.message);
       return;
     }
-
+    alert(transacaoEditada ? 'Gasto atualizado com sucesso!' : 'Gasto salvo com sucesso!');
     navigate('/'); // Volta para o Dashboard
-  };
+  }, [form, transacaoEditada, navigate]);
 
   return (
     <main className="container">
@@ -56,14 +56,7 @@ export default function AddExpense() {
         <input name="valor" type="number" step="0.01" value={form.valor} onChange={handleChange} placeholder="0,00" required />
         
         <label>Categoria</label>
-        <select name="categoria" value={form.categoria} onChange={handleChange} className="input-field" style={{ 
-          paddingRight: '2.5rem',
-          appearance: 'none',
-          WebkitAppearance: 'none',
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E")`,
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'right 1rem center'
-        }}>
+        <select name="categoria" value={form.categoria} onChange={handleChange} className="input-field">
           {CATEGORIAS.map(cat => <option key={cat} value={cat}>{cat}</option>)}
         </select>
 
