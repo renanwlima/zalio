@@ -1,31 +1,18 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../supabaseClient'; // Importar supabase
+import { useAuth0 } from '@auth0/auth0-react';
+import { useData } from '../contexts/DataContext';
 
 export default function DespesasFixas() {
-  const [despesas, setDespesas] = useState([]);
   const [nome, setNome] = useState('');
   const [valor, setValor] = useState('');
   const [vencimento, setVencimento] = useState('');
   const [editandoId, setEditandoId] = useState(null);
   const [menuAbertoId, setMenuAbertoId] = useState(null);
-
-  const carregarDespesas = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.from('despesas_fixas').select('*').order('vencimento', { ascending: true });
-      if (error) {
-        console.error('Erro ao buscar despesas:', error.message);
-      } else {
-        console.log('Dados de despesas fixas carregados:', data); // Adicionado para depuração
-        setDespesas(data);
-      }
-    } catch (err) {
-      console.error('Erro inesperado:', err);
-    }
-  }, []);
+  const { user } = useAuth0();
+  const { despesasFixas: despesas, carregarTudo } = useData();
 
   useEffect(() => {
-    carregarDespesas();
-
     const handleClickOutside = (event) => {
       if (!event.target.closest('.action-menu-container')) {
         setMenuAbertoId(null);
@@ -35,7 +22,7 @@ export default function DespesasFixas() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [carregarDespesas]);
+  }, []);
 
   const limparFormulario = () => {
     setNome('');
@@ -50,6 +37,7 @@ export default function DespesasFixas() {
       nome: nome,
       valor: Number(valor), // Garante que o valor é um número
       vencimento: Number(vencimento), // Garante que o vencimento é um número
+      user_id: user?.sub
     };
 
     if (editandoId) {
@@ -65,8 +53,8 @@ export default function DespesasFixas() {
     }
 
     limparFormulario();
-    carregarDespesas();
-  }, [nome, valor, vencimento, editandoId, carregarDespesas]);
+    carregarTudo();
+  }, [nome, valor, vencimento, editandoId, carregarTudo, user?.sub]);
 
   const handleEdit = (item) => {
     setEditandoId(item.id);
@@ -81,7 +69,7 @@ export default function DespesasFixas() {
       if (error) {
         alert('Erro ao excluir despesa: ' + error.message);
       }
-      carregarDespesas();
+      carregarTudo();
     }
   };
 
@@ -118,13 +106,15 @@ export default function DespesasFixas() {
         </div>
 
         {/* Lista de Despesas */}
-        <div className="dashboard-card" style={{ flex: '2 1 400px', padding: '1.5rem', height: '500px', overflowY: 'auto' }}>
-          <h3 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Contas Cadastradas</h3>
-          {despesas.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Nenhuma despesa fixa registrada.</p>
-          ) : (
-            <ul className="expense-list">
+        <div className="dashboard-card" style={{ flex: '2 1 400px', padding: '1.5rem', height: '500px', display: 'flex', flexDirection: 'column' }}>
+          <h3 style={{ marginTop: 0, marginBottom: '1.5rem', flexShrink: 0 }}>Contas Cadastradas</h3>
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem' }}>
+            {despesas.length === 0 ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Nenhuma despesa fixa registrada.</p>
+            ) : (
+              <ul className="expense-list">
               {despesas.map((item, index) => {
+                const openUp = index >= despesas.length - 2 && despesas.length > 2;
                 return (
                 <li key={item.id} className="expense-item" style={{ padding: '0.8rem 1rem', position: 'relative' }}>
                   <div className="expense-info" style={{ flexGrow: 1 }}>
@@ -142,7 +132,7 @@ export default function DespesasFixas() {
                         </svg>
                       </button>
                       {menuAbertoId === item.id && (
-                        <div className="action-menu up">
+                        <div className={`action-menu ${openUp ? 'up' : ''}`}>
                           <button onClick={() => { handleEdit(item); setMenuAbertoId(null); }} className="action-menu-button" style={{ borderBottom: '1px solid var(--border-color)' }}>Editar</button>
                           <button onClick={() => { handleDelete(item.id); setMenuAbertoId(null); }} className="action-menu-button" style={{ color: 'var(--error-color)' }}>Excluir</button>
                         </div>
@@ -152,7 +142,8 @@ export default function DespesasFixas() {
                 </li>
               )})}
             </ul>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </main>

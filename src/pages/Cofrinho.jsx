@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useData } from '../contexts/DataContext';
 
 export default function Cofrinho() {
-  const [cofrinhos, setCofrinhos] = useState([]);
   const [nome, setNome] = useState('');
   const [meta, setMeta] = useState('');
   const [saldoAtual, setSaldoAtual] = useState('');
@@ -12,26 +13,8 @@ export default function Cofrinho() {
   const [depositandoId, setDepositandoId] = useState(null);
   const [valorDeposito, setValorDeposito] = useState('');
   const [animatedPercs, setAnimatedPercs] = useState({}); // Adicionado: Estado para as porcentagens animadas
-  const [isLoading, setIsLoading] = useState(true); // Mantido: Estado de carregamento
-
-  const carregarCofrinhos = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.from('cofrinho').select('*').order('created_at', { ascending: true }); //
-      if (error) {
-        console.error('Erro ao buscar cofrinhos:', error.message);
-        // Opcional: alert('Não foi possível carregar os cofrinhos.');
-      } else if (data) {
-        setCofrinhos(data);
-      }
-    } catch (err) {
-      console.error('Erro inesperado ao carregar cofrinhos:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    carregarCofrinhos();
-  }, [carregarCofrinhos]); // Este useEffect chama carregarCofrinhos apenas uma vez ao montar o componente
+  const { user } = useAuth0();
+  const { cofrinhos, isLoadingGlobal: isLoading, carregarTudo } = useData();
   
   useEffect(() => {
     // Este useEffect lida com o cálculo das porcentagens animadas e o estado de carregamento
@@ -41,7 +24,6 @@ export default function Cofrinho() {
         percs[item.id] = item.meta > 0 ? Math.min((item.saldo / item.meta) * 100, 100) : 0;
       });
       setAnimatedPercs(percs);
-      setIsLoading(false); // Define isLoading como false após as porcentagens serem calculadas
     }, 100); // Pequeno delay para garantir que a UI renderize com 0% antes de animar
 
     return () => clearTimeout(timer);
@@ -64,7 +46,8 @@ export default function Cofrinho() {
     const payload = { 
       nome: nome || 'Meu Sonho', 
       meta: Number(meta),
-      saldo: Number(saldoAtual) || 0 // Pega o valor digitado ou assume 0 se estiver vazio
+      saldo: Number(saldoAtual) || 0, // Pega o valor digitado ou assume 0 se estiver vazio
+      user_id: user?.sub
     };
     
     if (editandoId) {
@@ -79,8 +62,8 @@ export default function Cofrinho() {
       }
     }
     limparFormulario();
-    carregarCofrinhos();
-  }, [nome, meta, saldoAtual, editandoId, carregarCofrinhos]);
+    carregarTudo();
+  }, [nome, meta, saldoAtual, editandoId, carregarTudo, user?.sub]);
 
   const handleDepositar = useCallback(async (e, id, saldoAntigo) => {
     e.preventDefault();
@@ -98,8 +81,8 @@ export default function Cofrinho() {
     }
     setDepositandoId(null);
     setValorDeposito('');
-    carregarCofrinhos();
-  }, [valorDeposito, carregarCofrinhos]);
+    carregarTudo();
+  }, [valorDeposito, carregarTudo]);
 
   const handleEdit = useCallback((item) => {
     setNome(item.nome || '');
@@ -117,9 +100,9 @@ export default function Cofrinho() {
         alert('Erro ao excluir cofrinho: ' + error.message);
         return;
       }
-      carregarCofrinhos();
+      carregarTudo();
     }
-  }, [carregarCofrinhos]);
+  }, [carregarTudo]);
 
   const limparFormulario = () => {
     setNome(''); setMeta(''); setSaldoAtual(''); setEditandoId(null);
@@ -167,7 +150,9 @@ export default function Cofrinho() {
         <div className="dashboard-card" style={{ flex: '2 1 400px', padding: '1.5rem 2rem', margin: 0, height: '620px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ borderBottom: '2px solid #3b82f6', paddingBottom: '0.8rem', marginBottom: '1.5rem', marginTop: 0, flexShrink: 0 }}>Meus Cofrinhos</h3>
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {cofrinhos.length === 0 ? (
+            {isLoading ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', margin: 0 }}>Carregando...</p>
+            ) : cofrinhos.length === 0 ? (
                 <p style={{ textAlign: 'center', color: 'var(--text-secondary)', margin: 0 }}>Nenhum cofrinho criado ainda.</p>
             ) : (
               cofrinhos.map((item, index) => {

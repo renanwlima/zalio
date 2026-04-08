@@ -1,34 +1,35 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useData } from '../contexts/DataContext';
 
 export default function Dados() {
   const [salario, setSalario] = useState('');
   const [va, setVa] = useState('');
   const [vr, setVr] = useState('');
+  const { user } = useAuth0();
+  const { dadosFinanceiros, carregarTudo } = useData();
 
   useEffect(() => {
-    carregarDados();
-  }, []);
-
-  const carregarDados = async () => {
-    const { data } = await supabase.from('dados_financeiros').select('*').order('created_at', { ascending: false }).limit(1);
-    if (data && data.length > 0) {
-      setSalario(data[0].salario || '');
-      setVa(data[0].va || '');
-      setVr(data[0].vr || '');
+    if (dadosFinanceiros && dadosFinanceiros.length > 0) {
+      setSalario(dadosFinanceiros[0].salario || '');
+      setVa(dadosFinanceiros[0].va || '');
+      setVr(dadosFinanceiros[0].vr || '');
     }
-  };
+  }, [dadosFinanceiros]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = {
       salario: Number(salario),
       va: Number(va),
-      vr: Number(vr)
+      vr: Number(vr),
+      user_id: user?.sub
     };
     
     const { error } = await supabase.from('dados_financeiros').insert([payload]);
     if (error) alert('Erro ao salvar: ' + error.message);
+    else carregarTudo();
   };
 
   return (

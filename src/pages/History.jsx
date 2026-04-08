@@ -2,37 +2,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CATEGORY_COLORS } from '../services/storage';
 import { supabase } from '../supabaseClient';
+import { useData } from '../contexts/DataContext';
 
 export default function History() {
-  const [transacoes, setTransacoes] = useState([]);
-  const [entradas, setEntradas] = useState([]);
   const [menuAbertoId, setMenuAbertoId] = useState(null);
   const navigate = useNavigate();
-  
-  // Usando useCallback para memorizar a função carregarDados e evitar recriações desnecessárias
-  const carregarDados = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('date', { ascending: false });
-        
-      if (error) {
-        console.error('Erro ao buscar histórico:', error.message);
-        // Opcional: Exibir uma mensagem de erro para o usuário
-        // alert('Não foi possível carregar o histórico. Tente novamente.');
-      } else if (data) {
-        setTransacoes(data.filter(t => t.tipo === 'saida'));
-        setEntradas(data.filter(t => t.tipo === 'entrada'));
-      }
-    } catch (err) {
-      console.error('Erro inesperado ao carregar dados:', err);
-    }
-  }, []); // Dependências vazias, pois não depende de nenhum estado ou prop
+  const { transacoes: todasTransacoes, carregarTudo } = useData();
+
+  // Separa as transações que já vieram do cache global
+  const entradas = todasTransacoes.filter(t => t.tipo === 'entrada');
+  const transacoes = todasTransacoes.filter(t => t.tipo === 'saida');
 
   useEffect(() => {
-    carregarDados();
-
     const handleClickOutside = (event) => {
       if (!event.target.closest('.action-menu-container')) {
         setMenuAbertoId(null);
@@ -42,15 +23,15 @@ export default function History() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [carregarDados]); // Adiciona carregarDados como dependência
+  }, []); // Dependências vazias
 
   const handleDelete = useCallback(async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este lançamento?')) {
       const { error } = await supabase.from('transactions').delete().eq('id', id); //
       if (error) console.error('Erro ao excluir lançamento:', error.message); //
-      carregarDados();
+      carregarTudo(); // Atualiza o cache global
     }
-  }, [carregarDados]); // Depende de carregarDados
+  }, [carregarTudo]);
 
   const handleEdit = useCallback((item) => {
     if (item.tipo === 'entrada') {
@@ -67,13 +48,15 @@ export default function History() {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3rem', alignItems: 'flex-start' }}>
         
         {/* Coluna Entradas */}
-        <div style={{ flex: '1 1 400px', height: '550px', overflowY: 'auto', padding: '0 0.5rem' }}>
-          <h3 style={{ borderBottom: '2px solid #10b981', paddingBottom: '0.5rem', marginBottom: '1.5rem', position: 'sticky', top: 0, zIndex: 2, background: 'var(--card-bg)', paddingTop: '0.5rem' }}>Total de Entradas</h3>
-          {entradas.length === 0 ? (
-            <p style={{textAlign:'center', color: 'var(--text-secondary)'}}>Nenhuma entrada registrada.</p>
-          ) : (
-            <ul className="expense-list">
+        <div style={{ flex: '1 1 400px', height: '550px', display: 'flex', flexDirection: 'column', padding: '0 0.5rem' }}>
+          <h3 style={{ borderBottom: '2px solid #10b981', paddingBottom: '0.5rem', marginBottom: '1.5rem', flexShrink: 0 }}>Total de Entradas</h3>
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem' }}>
+            {entradas.length === 0 ? (
+              <p style={{textAlign:'center', color: 'var(--text-secondary)'}}>Nenhuma entrada registrada.</p>
+            ) : (
+              <ul className="expense-list">
               {entradas.map((item, index) => {
+                const openUp = index >= entradas.length - 2 && entradas.length > 2;
                 return (
                 <li 
                   key={item.id} 
@@ -97,7 +80,7 @@ export default function History() {
                         </svg>
                       </button>
                       {menuAbertoId === item.id && (
-                        <div className="action-menu up">
+                        <div className={`action-menu ${openUp ? 'up' : ''}`}>
                           <button onClick={() => { handleEdit(item); setMenuAbertoId(null); }} className="action-menu-button" style={{ borderBottom: '1px solid var(--border-color)' }}>Editar</button>
                           <button onClick={() => { handleDelete(item.id); setMenuAbertoId(null); }} className="action-menu-button" style={{ color: 'var(--error-color)' }}>Excluir</button>
                         </div>
@@ -107,17 +90,20 @@ export default function History() {
                 </li>
               )})}
             </ul>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Coluna Saídas */}
-        <div style={{ flex: '1 1 400px', height: '550px', overflowY: 'auto', padding: '0 0.5rem' }}>
-          <h3 style={{ borderBottom: '2px solid #ef4444', paddingBottom: '0.5rem', marginBottom: '1.5rem', position: 'sticky', top: 0, zIndex: 2, background: 'var(--card-bg)', paddingTop: '0.5rem' }}>Total de Saídas</h3>
-          {transacoes.length === 0 ? (
-            <p style={{textAlign:'center', color: 'var(--text-secondary)'}}>Nenhuma saída registrada.</p>
-          ) : (
-            <ul className="expense-list">
+        <div style={{ flex: '1 1 400px', height: '550px', display: 'flex', flexDirection: 'column', padding: '0 0.5rem' }}>
+          <h3 style={{ borderBottom: '2px solid #ef4444', paddingBottom: '0.5rem', marginBottom: '1.5rem', flexShrink: 0 }}>Total de Saídas</h3>
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem' }}>
+            {transacoes.length === 0 ? (
+              <p style={{textAlign:'center', color: 'var(--text-secondary)'}}>Nenhuma saída registrada.</p>
+            ) : (
+              <ul className="expense-list">
               {transacoes.map((item, index) => {
+                const openUp = index >= transacoes.length - 2 && transacoes.length > 2;
                 return (
                 <li 
                   key={item.id} 
@@ -141,7 +127,7 @@ export default function History() {
                         </svg>
                       </button>
                       {menuAbertoId === item.id && (
-                        <div className="action-menu up">
+                        <div className={`action-menu ${openUp ? 'up' : ''}`}>
                           <button onClick={() => { handleEdit(item); setMenuAbertoId(null); }} className="action-menu-button" style={{ borderBottom: '1px solid var(--border-color)' }}>Editar</button>
                           <button onClick={() => { handleDelete(item.id); setMenuAbertoId(null); }} className="action-menu-button" style={{ color: 'var(--error-color)' }}>Excluir</button>
                         </div>
@@ -151,7 +137,8 @@ export default function History() {
                 </li>
               )})}
             </ul>
-          )}
+            )}
+          </div>
         </div>
 
       </div>

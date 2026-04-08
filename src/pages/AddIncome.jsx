@@ -1,10 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useData } from '../contexts/DataContext';
 
 export default function AddIncome() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth0();
+  const { carregarTudo } = useData();
   const transacaoEditada = location.state?.transaction;
 
   const [descricao, setDescricao] = useState(transacaoEditada?.descricao || '');
@@ -23,7 +27,8 @@ export default function AddIncome() {
       descricao: descricao,
       valor: Number(valor), // Garante que o valor é um número
       date: data,
-      tipo: 'entrada'
+      tipo: 'entrada',
+      user_id: user?.sub
     };
 
     const { error } = transacaoEditada //
@@ -35,8 +40,9 @@ export default function AddIncome() {
       alert('Erro ao salvar a entrada: ' + error.message);
       return;
     }
+    carregarTudo(); // Atualiza o cache global
     navigate('/'); // Volta para o Dashboard
-  }, [descricao, valor, data, transacaoEditada, navigate]);
+  }, [descricao, valor, data, transacaoEditada, navigate, user?.sub, carregarTudo]);
 
   return (
     <div className="container">

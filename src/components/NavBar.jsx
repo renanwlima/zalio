@@ -1,6 +1,8 @@
 import { Link, NavLink } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 
 export default function NavBar({ theme, toggleTheme }) {
+  const { logout, user, isAuthenticated } = useAuth0();
   // Função para aplicar a cor azul e negrito apenas na aba que estiver ativa
   const activeStyle = ({ isActive }) => ({
     color: isActive ? '#3b82f6' : '',
@@ -9,8 +11,10 @@ export default function NavBar({ theme, toggleTheme }) {
 
   return (
     <nav className="nav" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.5rem', padding: '1rem', width: '100%', boxSizing: 'border-box', position: 'relative' }}>
-      {/* Logo ou Título do projeto à esquerda */}
-      <Link to="/" className="nav-logo" style={{ position: 'absolute', left: '2rem', fontSize: '1.8rem', fontWeight: 'bold', textDecoration: 'none' }}>Zalio</Link>
+      {/* Esquerda: Logo */}
+      <div style={{ position: 'absolute', left: '2rem', display: 'flex', alignItems: 'center' }}>
+        <Link to="/" className="nav-logo" style={{ fontSize: '1.8rem', fontWeight: 'bold', textDecoration: 'none' }}>Zalio</Link>
+      </div>
       
       {/* Links de navegação centrais */}
       <NavLink to="/" end style={activeStyle}>Dashboard</NavLink>
@@ -21,10 +25,36 @@ export default function NavBar({ theme, toggleTheme }) {
       <NavLink to="/historico" style={activeStyle}>Histórico</NavLink>
       <NavLink to="/dados" style={activeStyle}>Dados</NavLink>
 
-      {/* Botão de Tema */}
-      <button onClick={toggleTheme} className="theme-btn" aria-label="Alternar Tema" style={{ position: 'absolute', right: '2rem' }}>
-        {theme === 'light' ? '🌙 Escuro' : '☀️ Claro'}
-      </button>
+      {/* Direita: Saudação e Botões */}
+      <div style={{ position: 'absolute', right: '2rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        {/* Saudação */}
+        {isAuthenticated && user && (
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+            Olá, <strong style={{ color: 'var(--text-color)' }}>{user.given_name || user.name?.split(' ')[0] || user.nickname || 'Usuário'}</strong>!
+          </span>
+        )}
+
+        {/* Botão de Sair */}
+        <button 
+          onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+          style={{
+            margin: 0,
+            background: 'transparent',
+            color: 'var(--error-color)',
+            border: '1px solid var(--error-color)',
+            padding: '0.5rem 1rem',
+            width: 'auto',
+            boxShadow: 'none'
+          }}
+        >
+          Sair
+        </button>
+
+        {/* Botão de Tema */}
+        <button onClick={toggleTheme} className="theme-btn" aria-label="Alternar Tema" style={{ margin: 0 }}>
+          {theme === 'light' ? '🌙 Escuro' : '☀️ Claro'}
+        </button>
+      </div>
     </nav>
   );
 }

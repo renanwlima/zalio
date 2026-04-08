@@ -15,6 +15,8 @@ import AddIncome from './pages/AddIncome';
 import AddExpense from './pages/AddExpense';
 import History from './pages/History';
 import Cofrinho from './pages/Cofrinho';
+import ProtectedRoute from './components/ProtectedRoute';
+import { DataProvider } from './contexts/DataContext';
 
 
 // Definição das rotas da aplicação utilizando createBrowserRouter.
@@ -25,7 +27,14 @@ import Cofrinho from './pages/Cofrinho';
 export const router = createBrowserRouter([
   { path: '/login', element: <Login/> },
   {
-    path: '/', element: <App/>, children: [
+    path: '/', 
+    element: (
+      <ProtectedRoute>
+        <DataProvider>
+          <App/>
+        </DataProvider>
+      </ProtectedRoute>
+    ), children: [
       { index: true, element: <Dashboard/> },
       { path: 'cofrinho', element: <Cofrinho/> },
       { path: 'adicionar-entrada', element: <AddIncome/> },

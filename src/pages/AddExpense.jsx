@@ -2,10 +2,14 @@ import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CATEGORIAS } from '../services/storage';
 import { supabase } from '../supabaseClient';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useData } from '../contexts/DataContext';
 
 export default function AddExpense() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth0(); // Pega as informações do usuário logado no Auth0
+  const { carregarTudo } = useData();
   // Recupera a transação caso esteja no modo "Editar"
   const transacaoEditada = location.state?.transaction;
 
@@ -29,7 +33,8 @@ export default function AddExpense() {
       valor: parseFloat(form.valor),
       categoria: form.categoria,
       date: form.data,
-      tipo: 'saida'
+      tipo: 'saida',
+      user_id: user?.sub // Atrela esta saída ao usuário que está logado
     };
 
     const { error } = transacaoEditada //
@@ -41,8 +46,9 @@ export default function AddExpense() {
       alert('Erro ao salvar o gasto: ' + error.message);
       return;
     }
+    carregarTudo(); // Atualiza o cache global
     navigate('/'); // Volta para o Dashboard
-  }, [form, transacaoEditada, navigate]);
+  }, [form, transacaoEditada, navigate, user?.sub, carregarTudo]);
 
   return (
     <main className="container">

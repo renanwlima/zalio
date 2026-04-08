@@ -15,69 +15,49 @@ import { CATEGORIAS, CATEGORY_COLORS } from '../services/storage';
 import { supabase } from '../supabaseClient';
 import { startOfMonth, endOfMonth, format, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useData } from '../contexts/DataContext';
 
 // Registrando componentes do Chart.js
 ChartJS.register(Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, BarController);
 
 export default function Dashboard() {
   const { theme } = useOutletContext();
-  const [transacoes, setTransacoes] = useState([]);
-  const [entradas, setEntradas] = useState([]);
-  const [despesasFixas, setDespesasFixas] = useState([]);
-  const [cofrinho, setCofrinho] = useState({ saldo: 0, meta: 0 });
+  const { user } = useAuth0();
+  
+  // Puxando os dados globais da memória (cache)
+  const { transacoes: todasTransacoes, despesasFixas, cofrinhos, isLoadingGlobal } = useData();
+
+  // Estado local para forçar a re-animação do gráfico toda vez que a aba é aberta
+  const [isAnimating, setIsAnimating] = useState(true);
   const [dataType, setDataType] = useState('saidas');
-  const [isLoading, setIsLoading] = useState(true);
   
   // Novos estados para Filtro Temporal e Privacidade
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hideValues, setHideValues] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
 
-  // Usando useCallback para memorizar a função fetchTransactions
-  const fetchTransactions = useCallback(async () => {
-    setIsLoading(true); // Começa a carregar
-    
-    const start = startOfMonth(currentDate).toISOString();
-    const end = endOfMonth(currentDate).toISOString();
+  // Estados para animar as barras de progresso
+  const [budgetAnimPerc, setBudgetAnimPerc] = useState(0);
+  const [cofrinhoAnimPerc, setCofrinhoAnimPerc] = useState(0);
 
-    try {
-      // Busca todos os dados do Supabase ao mesmo tempo (em paralelo)
-      // Isso garante que o gráfico monte com tudo pronto de uma vez, disparando a animação perfeitamente!
-      const [resTransacoes, resFixas, resCofre] = await Promise.all([
-        supabase.from('transactions').select('*').gte('date', start).lte('date', end), //
-        supabase.from('despesas_fixas').select('*'), //
-        supabase.from('cofrinho').select('*') //
-      ]);
+  // Filtra as transações globais apenas para o mês selecionado
+  const startStr = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+  const endStr = format(endOfMonth(currentDate), 'yyyy-MM-dd');
+  
+  const currentMonthTransactions = todasTransacoes.filter(t => {
+    const tDate = t.date.substring(0, 10);
+    return tDate >= startStr && tDate <= endStr;
+  });
 
-      if (resTransacoes.error) {
-        console.error('Erro ao buscar transações do Supabase:', resTransacoes.error.message);
-      } else if (resTransacoes.data) {
-        setTransacoes(resTransacoes.data.filter(t => t.tipo === 'saida'));
-        setEntradas(resTransacoes.data.filter(t => t.tipo === 'entrada'));
-      }
+  const transacoes = currentMonthTransactions.filter(t => t.tipo === 'saida');
+  const entradas = currentMonthTransactions.filter(t => t.tipo === 'entrada');
 
-      if (resFixas.error) {
-        console.error('Erro ao buscar despesas fixas do Supabase:', resFixas.error.message);
-      } else if (resFixas.data) {
-        setDespesasFixas(resFixas.data);
-      }
-
-      if (resCofre.error) {
-        console.error('Erro ao buscar cofrinhos do Supabase:', resCofre.error.message);
-      } else if (resCofre.data) {
-        const totalSaldo = resCofre.data.reduce((acc, curr) => acc + Number(curr.saldo), 0);
-        const totalMeta = resCofre.data.reduce((acc, curr) => acc + Number(curr.meta), 0);
-        setCofrinho({ saldo: totalSaldo, meta: totalMeta });
-      }
-    } catch (err) {
-      console.error('Erro inesperado ao buscar dados:', err);
-    }
-    setIsLoading(false); // Terminou de carregar, libera o gráfico!
-  }, [currentDate]); // Depende de currentDate
-
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]); // Adiciona fetchTransactions como dependência
+  // Total Cofrinho
+  const cofrinho = {
+    saldo: cofrinhos.reduce((acc, curr) => acc + Number(curr.saldo), 0),
+    meta: cofrinhos.reduce((acc, curr) => acc + Number(curr.meta), 0)
+  };
 
   const handlePrevMonth = useCallback(() => setCurrentDate(subMonths(currentDate, 1)), [currentDate]);
   const handleNextMonth = useCallback(() => setCurrentDate(addMonths(currentDate, 1)), [currentDate]);
@@ -132,6 +112,28 @@ export default function Dashboard() {
   // Total de Entradas dinâmico
   const totalEntradas = entradas.reduce((acc, curr) => acc + Number(curr.valor), 0);
 
+  // Efeito para re-animar o gráfico ao montar o componente ou mudar filtros
+  useEffect(() => {
+    setIsAnimating(true);
+    const timer = setTimeout(() => setIsAnimating(false), 50); // Pequeno delay para o React renderizar com dados zerados primeiro
+    return () => clearTimeout(timer);
+  }, [currentDate, dataType]); // Re-anima ao trocar de mês ou tipo de dado (saída/entrada)
+
+  // Efeito para animar as barras de progresso ao carregar ou mudar os dados
+  useEffect(() => {
+    // A animação acontece ao setar para 0 e depois para o valor real com um delay
+    setBudgetAnimPerc(0);
+    setCofrinhoAnimPerc(0);
+
+    const timer = setTimeout(() => {
+      const budgetPercValue = totalEntradas > 0 ? Math.min((totalGasto / totalEntradas) * 100, 100) : (totalGasto > 0 ? 100 : 0);
+      const cofrinhoPercValue = cofrinho.meta > 0 ? Math.min((cofrinho.saldo / cofrinho.meta) * 100, 100) : 0;
+      setBudgetAnimPerc(budgetPercValue);
+      setCofrinhoAnimPerc(cofrinhoPercValue);
+    }, 150); // Um delay um pouco maior para dar tempo da UI "piscar" para 0
+    return () => clearTimeout(timer);
+  }, [totalGasto, totalEntradas, cofrinho.saldo, cofrinho.meta]);
+
   // Preparação de dados para o gráfico
   const categoriasGrafico = [...CATEGORIAS, 'Fixas'];
   const dadosPorCategoria = categoriasGrafico.map(cat => {
@@ -155,7 +157,7 @@ export default function Dashboard() {
   const currentLabels = isSaidas ? categoriasGrafico : labelsEntradas;
   const rawData = isSaidas ? dadosPorCategoria : dadosEntradas;
   // O truque infalível: Se estiver carregando, passa 0 para tudo. Assim ele é obrigado a subir do chão!
-  const currentData = isLoading ? currentLabels.map(() => 0) : rawData;
+  const currentData = isLoadingGlobal || isAnimating ? currentLabels.map(() => 0) : rawData;
   const currentColors = isSaidas ? coresSaidas : colorsEntradas;
 
   // Cofrinho
@@ -205,7 +207,10 @@ export default function Dashboard() {
       }
     },
     scales: {
-      y: { beginAtZero: true } // Se for gráfico de barras, garante que inicie do zero
+      y: { 
+        beginAtZero: true,
+        suggestedMax: Math.max(...rawData, 0) // Fixa a torre de valores baseada no maior número real, evitando a animação da escala
+      }
     }
   };
 
@@ -253,7 +258,7 @@ export default function Dashboard() {
         </div>
       </div>
       
-      <div className="dashboard-layout-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'stretch' }}>
+      <div className="dashboard-layout-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'stretch', opacity: isLoadingGlobal ? 0.6 : 1, transition: 'opacity 0.3s' }}>
         
         {/* Coluna Esquerda: Cards */}
         <div className="dashboard-column-print" style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -291,11 +296,10 @@ export default function Dashboard() {
               </div>
               <div className="progress-bar-track" style={{ height: '8px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                 {(() => {
-                  const percentage = totalEntradas > 0 ? Math.min((totalGasto / totalEntradas) * 100, 100) : (totalGasto > 0 ? 100 : 0);
                   const isOver = totalGasto > totalEntradas && totalEntradas > 0;
-                  const barColor = isOver ? '#ef4444' : (percentage > 80 ? '#f59e0b' : '#10b981');
+                  const barColor = isOver ? '#ef4444' : (budgetAnimPerc > 80 ? '#f59e0b' : '#10b981');
                   return (
-                    <div className="progress-bar-fill" style={{ height: '100%', width: `${percentage}%`, backgroundColor: barColor, borderTop: `8px solid ${barColor}`, boxSizing: 'border-box', transition: 'width 0.5s ease' }}></div>
+                    <div className="progress-bar-fill" style={{ height: '100%', width: `${budgetAnimPerc}%`, backgroundColor: barColor, borderTop: `8px solid ${barColor}`, boxSizing: 'border-box', transition: 'width 0.8s ease-out' }}></div>
                   );
                 })()}
               </div>
@@ -314,7 +318,7 @@ export default function Dashboard() {
                 <span style={{ fontWeight: 500 }}>{formatCurrency(valorCofrinho)} / {formatCurrency(metaCofrinho)}</span>
               </div>
               <div className="progress-bar-track" style={{ height: '8px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                <div className="progress-bar-fill" style={{ height: '100%', width: `${percCofrinho}%`, backgroundColor: '#3b82f6', borderTop: '8px solid #3b82f6', boxSizing: 'border-box', transition: 'width 0.5s ease' }}></div>
+                <div className="progress-bar-fill" style={{ height: '100%', width: `${cofrinhoAnimPerc}%`, backgroundColor: '#3b82f6', borderTop: '8px solid #3b82f6', boxSizing: 'border-box', transition: 'width 0.8s ease-out' }}></div>
               </div>
             </div>
           </div>
@@ -349,12 +353,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {!isLoading && (isSaidas ? totalGasto : totalEntradas) === 0 ? (
+      {!isLoadingGlobal && (isSaidas ? totalGasto : totalEntradas) === 0 ? (
             <div className="chart-container" style={{ marginTop: '2rem', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <p style={{textAlign:'center', color: 'var(--text-secondary)'}}>Nenhuma {isSaidas ? 'saída' : 'entrada'} registrada neste mês.</p>
             </div>
-          ) : (
-            <div className="dashboard-content" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', marginTop: '1rem', opacity: isLoading ? 0.5 : 1, transition: 'opacity 0.4s ease' }}>
+      ) : (
+        <div className="dashboard-content" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', marginTop: '1rem', opacity: isLoadingGlobal ? 0.5 : 1, transition: 'opacity 0.4s ease' }}>
                 <div 
                   className="chart-container" 
                   style={{ width: '550px', maxWidth: '100%', height: '221px', position: 'relative', flexShrink: 0, margin: '0 auto' }}
@@ -365,7 +369,7 @@ export default function Dashboard() {
                 <div className="custom-legend" style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
                   <h3 style={{ marginTop: 0, marginBottom: '1.2rem', fontSize: '1.1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.8rem' }}>Resumo por {isSaidas ? 'Categoria' : 'Descrição'}</h3>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {currentLabels.map((cat, index) => ({ cat, valor: currentData[index], color: currentColors[index] }))
+                    {currentLabels.map((cat, index) => ({ cat, valor: rawData[index], color: currentColors[index] }))
                       .sort((a, b) => a.cat.localeCompare(b.cat))
                       .map(({ cat, valor, color }) => (
                       <li key={cat} className="legend-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.95rem' }}>

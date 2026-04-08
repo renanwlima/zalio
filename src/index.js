@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
+import { Auth0Provider } from '@auth0/auth0-react';
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   /*  O React.StrictMode é necessário para ativar verificações adicionais e avisos durante o desenvolvimento, ajudando a identificar problemas potenciais no código e garantindo que a aplicação siga as melhores práticas do React. 
@@ -15,6 +17,14 @@ root.render(
         especificado no arquivo routes.jsx. Sem o RouterProvider, as rotas não seriam renderizadas, e você não veria o conteúdo das páginas correspondentes às rotas.
         O RouterProvider é uma parte fundamental do sistema de roteamento do React Router, garantindo que as rotas sejam processadas e exibidas corretamente em toda a aplicação.
       */}
-     <RouterProvider router={router} />
+     <Auth0Provider
+       domain="dev-7tf743azyjk8acdg.us.auth0.com"
+       clientId="0iQvuP6ljEvDIMKlO8dUKujViEe2HvKk"
+       authorizationParams={{
+         redirect_uri: window.location.origin
+       }}
+     >
+       <RouterProvider router={router} />
+     </Auth0Provider>
   </React.StrictMode>
 );
