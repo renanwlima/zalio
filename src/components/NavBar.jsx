@@ -19,8 +19,8 @@ export default function NavBar({ theme, toggleTheme }) {
       {/* Links de navegação centrais */}
       <NavLink to="/" end style={activeStyle}>Dashboard</NavLink>
       <NavLink to="/cofrinho" style={activeStyle}>Cofrinhos</NavLink>
-      <NavLink to="/adicionar-entrada" style={activeStyle}>Adicionar Entrada</NavLink>
-      <NavLink to="/adicionar-saida" style={activeStyle}>Adicionar Saída</NavLink>
+      <NavLink to="/adicionar-entrada" style={activeStyle}>Entrada</NavLink>
+      <NavLink to="/adicionar-saida" style={activeStyle}>Saída</NavLink>
       <NavLink to="/despesas-fixas" style={activeStyle}>Despesas Fixas</NavLink>
       <NavLink to="/historico" style={activeStyle}>Histórico</NavLink>
       <NavLink to="/dados" style={activeStyle}>Dados</NavLink>
