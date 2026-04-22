@@ -44,7 +44,7 @@ body {
   margin: 0;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
-  height: 100vh; /* Altura fixa na tela */
+  height: calc(100vh / 0.9); /* Compensa o zoom de 0.9 para preencher a tela */
   overflow: hidden; /* Remove barra de rolagem da janela */
 }
 
@@ -55,7 +55,7 @@ body {
 .app-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Garante que o layout ocupe exatamente a tela */
+  height: calc(100vh / 0.9); /* Compensa o zoom de 0.9 para grudar o rodapé */
   overflow: hidden;
   background-color: var(--bg-color);
   color: var(--text-main);
@@ -68,7 +68,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: calc(100vh / 0.9); /* Compensa o zoom de 0.9 */
   background-color: var(--bg-color);
   color: var(--text-secondary);
 }
