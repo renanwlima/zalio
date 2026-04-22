@@ -29,7 +29,7 @@ root.render(
        authorizationParams={{
          redirect_uri: Capacitor.isNativePlatform()
            ? 'com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.zalio.app/callback'
-           : window.location.origin + '/zalio'
+           : window.location.origin + (window.location.hostname === 'localhost' ? '' : '/zalio')
        }}
      >
        <RouterProvider router={router} />

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createHashRouter } from 'react-router-dom';
 import App from './App';
 import Login from './pages/Login';
 import AppLayout from './AppLayout'; // Nosso novo componente de Layout
@@ -7,7 +7,7 @@ import AddExpense from './pages/AddExpense';
 import AddIncome from './pages/AddIncome';
 import History from './pages/History';
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     // A página de login é uma rota pública, fora do layout principal.
     path: "/login",
@@ -28,6 +28,4 @@ export const router = createBrowserRouter([
       ]}
     ],
   },
-], {
-  basename: "/zalio"
-});
+]);
