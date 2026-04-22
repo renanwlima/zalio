@@ -1,12 +1,14 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react'; 
+import { useNavigate } from 'react-router-dom'; 
 import { useAuth0 } from '@auth0/auth0-react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 
 export default function Login(){
-  const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
-  const nav = useNavigate();
+  const { loginWithRedirect, isAuthenticated, isLoading, handleRedirectCallback } = useAuth0(); 
+  const navigate = useNavigate();
 
-  // Efeito para redirecionar para a Home (Dashboard) caso o usuário já esteja logado
   useEffect(() => {
     // Efeito para garantir que a tela de login respeite o tema (escuro/claro) do usuário
     const savedTheme = localStorage.getItem('theme');
@@ -16,21 +18,52 @@ export default function Login(){
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      nav('/');
+    // Se o usuário chegar na página de login mas já estiver autenticado,
+    // o redirecionamos para a página inicial.
+    // O `isLoading` garante que só fazemos isso após o Auth0 terminar a verificação.
+    if (!isLoading && isAuthenticated) {
+      navigate('/');
     }
-  }, [isAuthenticated, nav]);
+  }, [isLoading, isAuthenticated, navigate]);
 
-  if (isLoading) {
-    return (
-      <div className="app-layout" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <div style={{ color: 'var(--text-secondary)' }}>Carregando validação...</div>
-      </div>
-    );
-  }
+  // Escuta o retorno do Auth0 no aplicativo (Deep Link) via Capacitor
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      const listener = CapApp.addListener('appUrlOpen', async ({ url }) => {
+        // Verifica se a URL de retorno tem os parâmetros de sucesso ou erro do Auth0
+        if (url.includes('state=') && (url.includes('error=') || url.includes('code='))) {
+          // Fecha o navegador nativo (Custom Tab) que estava sobreposto
+          await Browser.close().catch(() => {});
+          try {
+            // Passa a URL para o Auth0 processar o login e gerar o token da sessão
+            await handleRedirectCallback(url);
+          } catch (error) {
+            console.error('Erro no Auth0:', error);
+            alert('Erro ao finalizar o login: ' + error.message);
+          }
+        }
+      });
+      return () => {
+        listener.then(l => l.remove());
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Como o Auth0 usa o "Universal Login", substituímos o formulário local 
-  // por um botão que redireciona o usuário para o ambiente seguro do Auth0.
+  const handleLogin = async () => {
+    await loginWithRedirect({
+      async openUrl(url) {
+        // Se for celular, usa o navegador nativo interno (melhor UX e evita abrir o Chrome)
+        if (Capacitor.isNativePlatform()) {
+          await Browser.open({ url });
+        } else {
+          // Se for PC, redireciona a página normalmente
+          window.location.assign(url);
+        }
+      }
+    });
+  };
+
   return (
     <div className="app-layout">
       <div className="main-content" style={{ justifyContent: 'center', padding: '1rem' }}>
@@ -41,8 +74,8 @@ export default function Login(){
             Faça login ou crie sua conta de forma segura.
           </p>
           <div className="grid">
-            <button onClick={() => loginWithRedirect()} style={{ padding: '1rem', fontSize: '1.1rem' }}>
-              Acessar com Auth0
+            <button onClick={handleLogin} style={{ padding: '1rem', fontSize: '1.1rem' }}>
+              Entrar ou Registrar
             </button>
           </div>
         </main>

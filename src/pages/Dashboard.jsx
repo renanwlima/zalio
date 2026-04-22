@@ -216,7 +216,7 @@ export default function Dashboard() {
 
   return (
     <main className="container" style={{ maxWidth: '1250px', padding: '1rem 2rem 2rem' }}>
-      <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '1rem', marginBottom: '2rem', width: '100%' }}>
+      <div className="no-print dashboard-header">
         
         {/* Esquerda: Calendário */}
         <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
@@ -361,7 +361,7 @@ export default function Dashboard() {
         <div className="dashboard-content" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', marginTop: '1rem', opacity: isLoadingGlobal ? 0.5 : 1, transition: 'opacity 0.4s ease' }}>
                 <div 
                   className="chart-container" 
-                  style={{ width: '550px', maxWidth: '100%', height: '221px', position: 'relative', flexShrink: 0, margin: '0 auto' }}
+                  style={{ width: '100%', maxWidth: '550px', height: '221px', position: 'relative', flexShrink: 0, margin: '0 auto' }}
                 >
                   <Bar data={dataGraph} options={options} />
                 </div>

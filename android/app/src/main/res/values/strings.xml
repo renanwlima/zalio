@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Zalio</string>
+    <string name="title_activity_main">Zalio</string>
+    <string name="package_name">com.zalio.app</string>
+    <string name="custom_url_scheme">com.zalio.app</string>
+</resources>

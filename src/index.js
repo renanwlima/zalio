@@ -4,6 +4,7 @@ import './index.css';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { Auth0Provider } from '@auth0/auth0-react';
+import { Capacitor } from '@capacitor/core';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -20,8 +21,15 @@ root.render(
      <Auth0Provider
        domain="dev-7tf743azyjk8acdg.us.auth0.com"
        clientId="0iQvuP6ljEvDIMKlO8dUKujViEe2HvKk"
+       cacheLocation="localstorage"
+       useRefreshTokens={true}
+       useCookiesForTransactions={true}
+       // O Auth0 precisa de um `redirect_uri` diferente para web e para mobile.
+       // `Capacitor.isNativePlatform()` detecta se o app está rodando no Android/iOS.
        authorizationParams={{
-         redirect_uri: window.location.origin
+         redirect_uri: Capacitor.isNativePlatform()
+           ? 'com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.zalio.app/callback'
+           : window.location.origin
        }}
      >
        <RouterProvider router={router} />

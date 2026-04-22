@@ -6,6 +6,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import Login from './pages/Login';
 // Importação do componente App, que serve como o layout principal da aplicação, onde as rotas filhas serão renderizadas
 import App from './App';
+import AppLayout from './AppLayout'; // <-- Importando o nosso Layout com o NavBar
 // Importação do componente FirstAccess, que é a página de primeiro acesso onde os usuários definem suas senhas pela primeira vez
 import FirstAccess from './pages/FirstAccess';
 import Dados from './pages/Dados';
@@ -34,15 +35,21 @@ export const router = createBrowserRouter([
           <App/>
         </DataProvider>
       </ProtectedRoute>
-    ), children: [
-      { index: true, element: <Dashboard/> },
-      { path: 'cofrinho', element: <Cofrinho/> },
-      { path: 'adicionar-entrada', element: <AddIncome/> },
-      { path: 'adicionar-saida', element: <AddExpense/> },
-      { path: 'historico', element: <History/> },
-      { path: 'first-access', element:  <FirstAccess/> },
-      { path: 'dados', element: <Dados/> },
-      { path: 'despesas-fixas', element: <DespesasFixas/> },
+    ), 
+    children: [
+      {
+        element: <AppLayout />, // <-- Envolvendo as páginas protegidas no Layout
+        children: [
+          { index: true, element: <Dashboard/> },
+          { path: 'cofrinho', element: <Cofrinho/> },
+          { path: 'adicionar-entrada', element: <AddIncome/> },
+          { path: 'adicionar-saida', element: <AddExpense/> },
+          { path: 'historico', element: <History/> },
+          { path: 'first-access', element:  <FirstAccess/> },
+          { path: 'dados', element: <Dados/> },
+          { path: 'despesas-fixas', element: <DespesasFixas/> },
+        ]
+      }
     ]
   }
 ]);

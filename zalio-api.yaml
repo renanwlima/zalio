@@ -1,0 +1,141 @@
+openapi: 3.0.0
+info:
+  title: Zalio - Gestão Financeira Pessoal
+  description: API completa para o sistema Zalio. Permite controle total (CRUD) sobre transações, despesas fixas, cofrinhos e histórico.
+  version: 1.3.0
+servers:
+  - url: https://lhaqrqpegqqubnkeyrhk.supabase.co/rest/v1
+    description: Servidor de Produção (Supabase - Zalio)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Transaction:
+      type: object
+      properties:
+        id: { type: integer }
+        description: { type: string }
+        value: { type: number }
+        date: { type: string, format: date }
+        type: { type: string, enum: [entrada, saída] }
+    FixedExpense:
+      type: object
+      properties:
+        id: { type: integer }
+        description: { type: string }
+        value: { type: number }
+        due_date: { type: integer }
+    Cofrinho:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        target_value: { type: number }
+        current_balance: { type: number }
+
+security:
+  - bearerAuth: []
+
+paths:
+  /transactions:
+    get:
+      summary: Consultar histórico de transações.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+    post:
+      summary: Adicionar transação.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '201':
+          description: Criado
+    patch:
+      summary: Editar transação.
+      responses:
+        '200':
+          description: Editado
+    delete:
+      summary: Apagar transação.
+      responses:
+        '204':
+          description: Removido
+
+  /fixed_expenses:
+    get:
+      summary: Consultar despesas fixas.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FixedExpense'
+    post:
+      summary: Adicionar despesa fixa.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixedExpense'
+      responses:
+        '201':
+          description: Criado
+    patch:
+      summary: Editar despesa fixa.
+      responses:
+        '200':
+          description: Editado
+    delete:
+      summary: Apagar despesa fixa.
+      responses:
+        '204':
+          description: Removido
+
+  /cofrinhos:
+    get:
+      summary: Consultar cofrinhos.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cofrinho'
+    post:
+      summary: Criar cofrinho.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cofrinho'
+      responses:
+        '201':
+          description: Criado
+    patch:
+      summary: Editar cofrinho.
+      responses:
+        '200':
+          description: Editado
+    delete:
+      summary: Apagar cofrinho.
+      responses:
+        '204':
+          description: Removido
