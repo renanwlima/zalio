@@ -346,14 +346,14 @@ button:active {
 /* --- Footer Profissional --- */
 .footer {
   text-align: center;
-  padding: 1rem; /* Padding reduzido para ocupar menos espaço */
+  padding: 0.5rem 1rem; /* Padding reduzido para deixar o rodapé mais baixinho */
   background-color: var(--card-bg);
   border-top: 1px solid var(--border-color);
   margin-top: auto;
 }
 
 .footer p {
-  margin: 0.5rem 0;
+  margin: 0.25rem 0;
   color: var(--text-secondary);
 }
 
@@ -362,7 +362,7 @@ button:active {
 }
 
 .footer-role { font-size: 0.9rem; font-weight: 500; }
-.footer-copy { font-size: 0.8rem; opacity: 0.8; margin-top: 1rem !important;}
+.footer-copy { font-size: 0.8rem; opacity: 0.8; margin-top: 0.5rem !important;}
 
 /* --- Estilos do Menu de Ações (3 pontinhos) --- */
 .action-menu-container {
