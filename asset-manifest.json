@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/zalio/static/css/main.fac265c6.css",
+    "main.css": "/zalio/static/css/main.5ade2bd1.css",
     "main.js": "/zalio/static/js/main.81041e15.js",
     "static/js/551.4e7206aa.chunk.js": "/zalio/static/js/551.4e7206aa.chunk.js",
     "static/js/842.d41c786b.chunk.js": "/zalio/static/js/842.d41c786b.chunk.js",
     "index.html": "/zalio/index.html",
-    "main.fac265c6.css.map": "/zalio/static/css/main.fac265c6.css.map",
+    "main.5ade2bd1.css.map": "/zalio/static/css/main.5ade2bd1.css.map",
     "main.81041e15.js.map": "/zalio/static/js/main.81041e15.js.map",
     "551.4e7206aa.chunk.js.map": "/zalio/static/js/551.4e7206aa.chunk.js.map",
     "842.d41c786b.chunk.js.map": "/zalio/static/js/842.d41c786b.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.fac265c6.css",
+    "static/css/main.5ade2bd1.css",
     "static/js/main.81041e15.js"
   ]
 }
