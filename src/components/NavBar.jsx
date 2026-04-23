@@ -172,7 +172,7 @@ export default function NavBar({ theme, toggleTheme }) {
 
           {/* Botão de Sair */}
           <button 
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            onClick={() => logout({ logoutParams: { returnTo: window.location.origin + window.location.pathname } })}
             style={{
               margin: 0,
               background: 'transparent',
@@ -220,7 +220,7 @@ export default function NavBar({ theme, toggleTheme }) {
           </button>
 
           <button 
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            onClick={() => logout({ logoutParams: { returnTo: window.location.origin + window.location.pathname } })}
             style={{
               margin: 0,
               background: 'transparent',
