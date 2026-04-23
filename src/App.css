@@ -617,26 +617,19 @@ button:active {
   }
 }
 
-/* --- Responsividade Especial para Mobile e Tablet (Android/iOS) --- */
-@media (max-width: 1024px) {
-
-  /* 1. Desce a barra de navegação para não ficar escondida atrás da hora/bateria nativa do celular */
+/* --- Responsividade da Barra de Navegação --- */
+@media (max-width: 1200px) {
+  /* 1. Remove o excesso de tamanho no topo e ajusta espaçamento interno */
   .nav {
-    padding-top: max(3.5rem, calc(1.5rem + env(safe-area-inset-top))) !important;
-    flex-wrap: wrap; /* Quebra a linha dos itens se faltar espaço */
-    justify-content: center;
-    gap: 1rem;
+    padding-top: calc(1rem + env(safe-area-inset-top)) !important;
+    padding-bottom: 1rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
+}
 
-  .nav-logo {
-    flex: 1 1 100%;
-    text-align: center;
-    margin-right: 0;
-  }
-
-  .nav .nav-btn-primary, .theme-btn {
-    margin-left: 0; /* Remove a margem automática para não isolar os botões após quebrar linha */
-  }
+/* --- Responsividade do Dashboard para Celulares e Tablets Menores --- */
+@media (max-width: 768px) {
 
   /* 2. Título Centralizado e Seletor de Meses Abaixo do Título */
   h2 {

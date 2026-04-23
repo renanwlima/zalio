@@ -26,7 +26,6 @@ export default function NavBar({ theme, toggleTheme }) {
             justify-content: center;
             align-items: center;
             gap: 1.5rem;
-            padding: 1rem;
             width: 100%;
             box-sizing: border-box;
             position: relative;
@@ -35,6 +34,7 @@ export default function NavBar({ theme, toggleTheme }) {
             display: flex;
             gap: 1.5rem;
             align-items: center;
+            min-height: 32px; /* Força os links a terem a mesma altura matemática do logo/menu */
           }
           .nav-desktop-right {
             position: absolute;
@@ -48,10 +48,14 @@ export default function NavBar({ theme, toggleTheme }) {
             background: none;
             border: none;
             font-size: 1.8rem;
+            line-height: 1;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             color: ${theme === 'dark' ? '#ffffff' : '#333333'};
-            width: auto;
-            padding: 0 0.5rem 0 0;
+            width: 32px;
+            height: 32px;
+            padding: 0;
             margin: 0;
             box-shadow: none;
           }
@@ -92,10 +96,17 @@ export default function NavBar({ theme, toggleTheme }) {
             display: block;
           }
           .close-btn {
-            align-self: flex-end;
+            align-self: flex-start;
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
+            line-height: 1;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
             cursor: pointer;
             color: ${theme === 'dark' ? '#ffffff' : '#333333'};
             margin-bottom: 1rem;
@@ -109,18 +120,17 @@ export default function NavBar({ theme, toggleTheme }) {
             align-items: center;
           }
 
-          /* Quando a tela for menor que 768px (dispositivos móveis) */
-          @media (max-width: 768px) {
+          /* Quando a tela for menor que 1200px (dispositivos móveis e tablets) */
+          @media (max-width: 1200px) {
             .nav-desktop-links, .nav-desktop-right {
               display: none;
             }
             .nav-container {
               justify-content: space-between;
               flex-direction: row-reverse; /* Inverte a ordem no celular: Menu na esquerda, Logo na direita */
-              padding: 0.8rem 1rem;
             }
             .hamburger-btn {
-              display: block;
+              display: flex;
             }
             .logo-container {
               position: static; /* Permite que o flexbox posicione a logo na direita */
@@ -132,7 +142,7 @@ export default function NavBar({ theme, toggleTheme }) {
       <nav className="nav nav-container">
         {/* Logo */}
         <div className="logo-container">
-          <Link to="/" className="nav-logo" style={{ fontSize: '1.8rem', fontWeight: 'bold', textDecoration: 'none' }}>Zalio</Link>
+          <Link to="/" className="nav-logo" style={{ fontSize: '1.8rem', fontWeight: 'bold', textDecoration: 'none', lineHeight: '32px', height: '32px', display: 'flex', alignItems: 'center' }}>Zalio</Link>
         </div>
         
         {/* Botão Hambúrguer (Apenas Mobile) */}
