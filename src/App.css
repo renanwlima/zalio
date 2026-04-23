@@ -44,6 +44,8 @@ body {
   margin: 0;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%; /* Bloqueia o Android de inflar as fontes do nada */
+  text-size-adjust: 100%;
   height: calc(100vh / 0.9); /* Compensa o zoom de 0.9 para preencher a tela */
   overflow: hidden; /* Remove barra de rolagem da janela */
 }
@@ -619,12 +621,14 @@ button:active {
 
 /* --- Responsividade da Barra de Navegação --- */
 @media (max-width: 1200px) {
+  /* 0. Desativa o zoom customizado no mobile para evitar bugs de cálculo do Android */
+  html { zoom: 1 !important; }
+  body, .app-layout, .loader-container { height: 100vh !important; }
+
   /* 1. Remove o excesso de tamanho no topo e ajusta espaçamento interno */
   .nav {
-    padding-top: calc(1rem + env(safe-area-inset-top)) !important;
-    padding-bottom: 1rem !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
+    padding: 1rem !important;
+    padding-top: max(1rem, env(safe-area-inset-top, 0px)) !important;
   }
 }
 
