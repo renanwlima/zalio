@@ -620,6 +620,11 @@ button:active {
 /* --- Responsividade Especial para Mobile (Android/iOS) --- */
 @media (max-width: 768px) {
 
+  /* 1. Desce a barra de navegação para não ficar escondida atrás da hora/bateria nativa do celular */
+  .nav {
+    padding-top: max(1.8rem, calc(0.8rem + env(safe-area-inset-top))) !important;
+  }
+
   /* 2. Título Centralizado e Seletor de Meses Abaixo do Título */
   h2 {
     text-align: center !important;
