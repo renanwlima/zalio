@@ -5,8 +5,11 @@ const config: CapacitorConfig = {
   appName: 'Zalio',
   webDir: 'build',
   server: {
-    // Permite que o app Android faça requisições para o seu domínio do Auth0.
-    allowNavigation: ['dev-7tf743azyjk8acdg.us.auth0.com']
+    url: 'https://renanwlima.github.io/zalio',
+    allowNavigation: [
+      'dev-7tf743azyjk8acdg.us.auth0.com',
+      'renanwlima.github.io'
+    ]
   }
 };
 
