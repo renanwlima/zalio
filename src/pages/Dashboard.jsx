@@ -12,10 +12,8 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { CATEGORIAS, CATEGORY_COLORS } from '../services/storage';
-import { supabase } from '../supabaseClient';
 import { startOfMonth, endOfMonth, format, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useAuth0 } from '@auth0/auth0-react';
 import { useData } from '../contexts/DataContext';
 
 // Registrando componentes do Chart.js
@@ -23,7 +21,6 @@ ChartJS.register(Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title,
 
 export default function Dashboard() {
   const { theme } = useOutletContext();
-  const { user } = useAuth0();
   
   // Puxando os dados globais da memória (cache)
   const { transacoes: todasTransacoes, despesasFixas, cofrinhos, isLoadingGlobal } = useData();
@@ -163,7 +160,6 @@ export default function Dashboard() {
   // Cofrinho
   const valorCofrinho = cofrinho.saldo;
   const metaCofrinho = cofrinho.meta;
-  const percCofrinho = metaCofrinho > 0 ? Math.min((valorCofrinho / metaCofrinho) * 100, 100) : 0;
 
   const dataGraph = {
     labels: currentLabels,

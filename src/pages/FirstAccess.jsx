@@ -1,7 +1,6 @@
 // Página de primeiro acesso, onde o usuário define sua senha pela primeira vez
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient'; // Importar supabase para autenticação
  
 export default function FirstAccess(){
   const [senha, setSenha] = useState('');
