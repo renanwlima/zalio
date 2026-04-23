@@ -11,13 +11,13 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Força o WebView a respeitar a área da barra de status (hora, bateria, etc)
-        View webView = getBridge().getWebView();
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
-            int top = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+        // Força o WebView a respeitar as áreas do sistema (Status Bar e Navigation Bar)
+        View contentView = findViewById(android.R.id.content);
+        ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, insets) -> {
+            androidx.core.graphics.Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             
-            // Adiciona um distanciamento no topo igual ao tamanho da barra de status
-            v.setPadding(0, top, 0, 0);
+            // Aplica o padding no topo (barra de status) e na base (barra de navegação)
+            v.setPadding(0, systemBars.top, 0, systemBars.bottom);
             
             return insets;
         });
