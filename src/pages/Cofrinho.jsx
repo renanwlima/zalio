@@ -118,11 +118,11 @@ export default function Cofrinho() {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'flex-start' }}>
         
         {/* Formulário (Esquerda) */}
-        <div className="dashboard-card" style={{ flex: '1 1 300px', padding: '1.5rem 2rem', margin: 0, height: '620px', display: 'flex', flexDirection: 'column' }}>
+        <div className="dashboard-card" style={{ flex: '1 1 300px', padding: '1.5rem 2rem', margin: 0, height: '460px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ borderBottom: '2px solid #10b981', paddingBottom: '0.8rem', marginBottom: '1.5rem', marginTop: 0, flexShrink: 0 }}>
             {editandoId ? 'Editar Cofrinho' : 'Novo Cofrinho'}
           </h3>
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem' }}>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
             <form onSubmit={handleSalvar} className="grid" style={{ gap: '1rem' }}>
               <div>
                 <label style={{ marginBottom: '0.5rem' }}>Nome do Objetivo</label>
@@ -147,9 +147,9 @@ export default function Cofrinho() {
         </div>
 
         {/* Lista de Cofrinhos (Direita) */}
-        <div className="dashboard-card" style={{ flex: '2 1 400px', padding: '1.5rem 2rem', margin: 0, height: '620px', display: 'flex', flexDirection: 'column' }}>
+        <div className="dashboard-card" style={{ flex: '2 1 400px', padding: '1.5rem 2rem', margin: 0, height: '460px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ borderBottom: '2px solid #3b82f6', paddingBottom: '0.8rem', marginBottom: '1.5rem', marginTop: 0, flexShrink: 0 }}>Meus Cofrinhos</h3>
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {isLoading ? (
               <p style={{ textAlign: 'center', color: 'var(--text-secondary)', margin: 0 }}>Carregando...</p>
             ) : cofrinhos.length === 0 ? (
@@ -160,9 +160,9 @@ export default function Cofrinho() {
                 const perc = animatedPercs[item.id] !== undefined ? animatedPercs[item.id] : 0;
                 const openUp = index >= cofrinhos.length - 2 && cofrinhos.length > 2;
                 return (
-                  <div key={item.id} style={{ position: 'relative', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.3rem', textAlign: 'left' }}>{item.nome || 'Meu Cofrinho'}</h3>
+                  <div key={item.id} style={{ position: 'relative', padding: '1rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--card-bg)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.15rem', textAlign: 'left' }}>{item.nome || 'Meu Cofrinho'}</h3>
                     <div className="action-menu-container">
                       <button onClick={() => setMenuAbertoId(prev => prev === item.id ? null : item.id)} className="action-menu-trigger" title="Opções">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
@@ -178,34 +178,34 @@ export default function Cofrinho() {
                     </div>
                   </div>
 
-                  <div style={{ textAlign: 'left', marginBottom: '1.5rem' }}>
-                    <p style={{ fontSize: '1rem', margin: '0 0 0.3rem 0', color: 'var(--text-secondary)' }}>Guardado:</p>
-                    <p style={{ fontSize: '2rem', margin: 0, color: '#3b82f6', fontWeight: 'bold' }}>
+                  <div style={{ textAlign: 'left', marginBottom: '1rem' }}>
+                    <p style={{ fontSize: '0.9rem', margin: '0 0 0.1rem 0', color: 'var(--text-secondary)' }}>Guardado:</p>
+                    <p style={{ fontSize: '1.6rem', margin: 0, color: '#3b82f6', fontWeight: 'bold' }}>
                       {Number(item.saldo).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </p>
-                    <p style={{ fontSize: '0.95rem', marginTop: '0.3rem', color: 'var(--text-secondary)' }}>
+                    <p style={{ fontSize: '0.85rem', marginTop: '0.1rem', color: 'var(--text-secondary)' }}>
                       de {Number(item.meta).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </p>
                   </div>
 
                   <div style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: '500' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: '500' }}>
                       <span>Progresso</span>
                       <span style={{ color: perc >= 100 ? '#10b981' : '#3b82f6' }}>{perc.toFixed(1)}%</span>
                     </div>
-                    <div style={{ height: '16px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                    <div style={{ height: '10px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '5px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                       <div style={{ height: '100%', width: `${perc}%`, backgroundColor: perc >= 100 ? '#10b981' : '#3b82f6', transition: 'width 0.8s ease-out' }}></div>
                     </div>
                   </div>
 
                   {depositandoId === item.id ? (
-                    <form onSubmit={(e) => handleDepositar(e, item.id, item.saldo)} style={{ display: 'flex', gap: '0.8rem', marginTop: '1.5rem', alignItems: 'center' }}>
-                      <input type="number" step="0.01" value={valorDeposito} onChange={(e) => setValorDeposito(e.target.value)} placeholder="Valor (R$)" required style={{ flex: 2, margin: 0, padding: '0.6rem 1rem' }} />
-                      <button type="submit" style={{ margin: 0, flex: 1, backgroundColor: '#10b981', padding: '0.6rem' }}>Confirmar</button>
-                      <button type="button" onClick={() => {setDepositandoId(null); setValorDeposito('');}} style={{ margin: 0, flex: 1, backgroundColor: '#6b7280', padding: '0.6rem' }}>Cancelar</button>
+                    <form onSubmit={(e) => handleDepositar(e, item.id, item.saldo)} style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', alignItems: 'center' }}>
+                      <input type="number" step="0.01" value={valorDeposito} onChange={(e) => setValorDeposito(e.target.value)} placeholder="Valor (R$)" required style={{ flex: 2, margin: 0, padding: '0.5rem 0.8rem' }} />
+                      <button type="submit" style={{ margin: 0, flex: 1, backgroundColor: '#10b981', padding: '0.5rem', fontSize: '0.9rem' }}>Confirmar</button>
+                      <button type="button" onClick={() => {setDepositandoId(null); setValorDeposito('');}} style={{ margin: 0, flex: 1, backgroundColor: '#6b7280', padding: '0.5rem', fontSize: '0.9rem' }}>Cancelar</button>
                     </form>
                   ) : (
-                    <button onClick={() => setDepositandoId(item.id)} style={{ marginTop: '1.5rem', backgroundColor: '#10b981', padding: '0.7rem', width: '100%' }}>+ Depositar</button>
+                    <button onClick={() => setDepositandoId(item.id)} style={{ marginTop: '1rem', backgroundColor: '#10b981', padding: '0.5rem', width: '100%', fontSize: '0.95rem' }}>+ Depositar</button>
                   )}
                 </div>
               );

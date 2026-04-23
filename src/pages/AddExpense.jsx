@@ -54,19 +54,27 @@ export default function AddExpense() {
     <main className="container">
       <h2>{transacaoEditada ? 'Editar Gasto' : 'Adicionar Gasto'}</h2>
       <form onSubmit={handleSubmit} className="grid">
-        <label>Descrição</label>
-        <input name="descricao" value={form.descricao} onChange={handleChange} placeholder="Ex: Mercado, Uber..." required />
+        <div>
+          <label>Descrição</label>
+          <input name="descricao" value={form.descricao} onChange={handleChange} placeholder="Ex: Mercado, Uber..." required />
+        </div>
         
-        <label>Valor (R$)</label>
-        <input name="valor" type="number" step="0.01" value={form.valor} onChange={handleChange} placeholder="0,00" required />
+        <div>
+          <label>Valor (R$)</label>
+          <input name="valor" type="number" step="0.01" value={form.valor} onChange={handleChange} placeholder="0,00" required />
+        </div>
         
-        <label>Categoria</label>
-        <select name="categoria" value={form.categoria} onChange={handleChange} className="input-field">
-          {CATEGORIAS.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-        </select>
+        <div>
+          <label>Categoria</label>
+          <select name="categoria" value={form.categoria} onChange={handleChange} className="input-field">
+            {CATEGORIAS.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
+        </div>
 
-        <label>Data</label>
-        <input name="data" type="date" value={form.data} onChange={handleChange} required />
+        <div>
+          <label>Data</label>
+          <input name="data" type="date" value={form.data} onChange={handleChange} required />
+        </div>
 
         <button type="submit">{transacaoEditada ? 'Atualizar Gasto' : 'Salvar Gasto'}</button>
       </form>

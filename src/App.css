@@ -160,10 +160,10 @@ body {
 }
 
 .container {
-  max-width: 480px; /* Largura mais focada para formulários */
+  max-width: 480px; /* Largura focada para formulários padrão */
   margin: auto; /* O segredo: 'auto' dentro de um flex container centraliza V e H */
   width: 100%; /* Garante que o card ocupe a largura disponível até o max-width */
-  padding: 2.5rem;
+  padding: 2.5rem; /* Padding original para não estragar as outras telas */
   background: var(--card-bg);
   border-radius: 12px;
   box-shadow: var(--shadow);
@@ -173,7 +173,7 @@ body {
 h2 {
   font-weight: 700;
   font-size: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem; /* Voltou ao normal */
   color: var(--text-main);
   text-align: center;
 }
@@ -181,20 +181,20 @@ h2 {
 .grid {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.25rem; /* Voltou ao normal */
 }
 
 label {
   font-size: 0.875rem;
   font-weight: 500;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.25rem; /* Voltou ao normal */
   display: block;
   color: var(--text-main);
 }
 
 input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1rem; /* Voltou ao normal */
   border: 1px solid var(--border-color);
   border-radius: 0.5rem;
   background-color: var(--input-bg);
@@ -206,7 +206,7 @@ input {
 /* Estilo para o Select igual ao input */
 select.input-field {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1rem; /* Voltou ao normal */
   border: 1px solid var(--border-color);
   border-radius: 0.5rem;
   background-color: var(--input-bg);
@@ -224,7 +224,7 @@ input:focus-visible, select.input-field:focus-visible {
 
 button {
   width: 100%;
-  padding: 0.875rem;
+  padding: 0.875rem; /* Voltou ao normal */
   background-color: var(--primary-color);
   color: white;
   border: none;
@@ -233,7 +233,7 @@ button {
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: 1rem;
+  margin-top: 1rem; /* Voltou ao normal */
   box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
   letter-spacing: 0.025em;
 }
@@ -247,6 +247,29 @@ button:hover {
 button:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Estilos Exclusivos APENAS para a Aba Cofrinho --- */
+.container.cofrinho-container {
+  max-width: 768px;
+  padding: 1rem;
+}
+.container.cofrinho-container h2 {
+  margin-bottom: 0.5rem;
+}
+.container.cofrinho-container .grid {
+  gap: 0.5rem;
+}
+.container.cofrinho-container label {
+  margin-bottom: 0.15rem;
+}
+.container.cofrinho-container input,
+.container.cofrinho-container select.input-field {
+  padding: 0.5rem 1rem;
+}
+.container.cofrinho-container button {
+  padding: 0.6rem;
+  margin-top: 0.5rem;
 }
 
 .error {
