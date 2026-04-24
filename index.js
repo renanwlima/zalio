@@ -4,6 +4,12 @@ import './index.css';
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { Auth0Provider } from '@auth0/auth0-react';
+import { Capacitor } from '@capacitor/core';
+
+// Define a URL de redirecionamento dinamicamente (Mobile vs Web)
+const redirectUri = Capacitor.isNativePlatform() 
+  ? 'com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.zalio.app/callback'
+  : window.location.origin;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -17,8 +23,10 @@ root.render(
        domain="dev-7tf743azyjk8acdg.us.auth0.com"
        clientId="0iQvuP6ljEvDIMKlO8dUKujViEe2HvKk"
        authorizationParams={{
-         redirect_uri: window.location.origin
+         redirect_uri: redirectUri
        }}
+       cacheLocation="localstorage"
+       useRefreshTokens={true}
      >
        <BrowserRouter>
          <App />
