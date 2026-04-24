@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
+import { Capacitor } from '@capacitor/core';
 import './App.css';
 
 function AppLayout() {
@@ -27,8 +28,11 @@ function AppLayout() {
 
   const toggleTheme = () => setTheme((curr) => (curr === 'light' ? 'dark' : 'light'));
 
+  // Verifica se está rodando de forma nativa (Android/iOS) para alterar o layout
+  const nativeClass = Capacitor.isNativePlatform() ? 'native-mobile-app' : '';
+
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${nativeClass}`}>
       <NavBar theme={theme} toggleTheme={toggleTheme} />
       <main className="main-content">
         {/* Restaura o context para que o Dashboard consiga acessar o 'theme' novamente */}
