@@ -15,6 +15,23 @@ export default function Cofrinho() {
   const [animatedPercs, setAnimatedPercs] = useState({}); // Adicionado: Estado para as porcentagens animadas
   const { user } = useAuth0();
   const { cofrinhos, isLoadingGlobal: isLoading, carregarTudo } = useData();
+  const [hideValues, setHideValues] = useState(() => localStorage.getItem('hideValues') === 'true');
+
+  // Sincroniza a visibilidade com as outras telas
+  useEffect(() => {
+    const handleSync = () => setHideValues(localStorage.getItem('hideValues') === 'true');
+    window.addEventListener('hideValuesChanged', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('hideValuesChanged', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+  const formatCurrency = (value) => {
+    if (hideValues) return 'R$ *****';
+    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
   
   useEffect(() => {
     // Este useEffect lida com o cálculo das porcentagens animadas e o estado de carregamento
@@ -181,10 +198,10 @@ export default function Cofrinho() {
                   <div style={{ textAlign: 'left', marginBottom: '1rem' }}>
                     <p style={{ fontSize: '0.9rem', margin: '0 0 0.1rem 0', color: 'var(--text-secondary)' }}>Guardado:</p>
                     <p style={{ fontSize: '1.6rem', margin: 0, color: '#3b82f6', fontWeight: 'bold' }}>
-                      {Number(item.saldo).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      {formatCurrency(item.saldo)}
                     </p>
                     <p style={{ fontSize: '0.85rem', marginTop: '0.1rem', color: 'var(--text-secondary)' }}>
-                      de {Number(item.meta).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      de {formatCurrency(item.meta)}
                     </p>
                   </div>
 

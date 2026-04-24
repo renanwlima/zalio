@@ -9,21 +9,36 @@ export default function Dados() {
   const [vr, setVr] = useState('');
   const { user } = useAuth0();
   const { dadosFinanceiros, carregarTudo } = useData();
+  const [hideValues, setHideValues] = useState(() => localStorage.getItem('hideValues') === 'true');
 
+  // Sincroniza a visibilidade com as outras telas
   useEffect(() => {
-    if (dadosFinanceiros && dadosFinanceiros.length > 0) {
-      setSalario(dadosFinanceiros[0].salario || '');
-      setVa(dadosFinanceiros[0].va || '');
-      setVr(dadosFinanceiros[0].vr || '');
-    }
-  }, [dadosFinanceiros]);
+    const handleSync = () => setHideValues(localStorage.getItem('hideValues') === 'true');
+    window.addEventListener('hideValuesChanged', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('hideValuesChanged', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+  const formatCurrency = (value) => {
+    if (hideValues) return 'R$ *****';
+    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  // Lê os dados confirmados do banco para o Resumo
+  const resumoSalario = dadosFinanceiros?.[0]?.salario || 0;
+  const resumoVa = dadosFinanceiros?.[0]?.va || 0;
+  const resumoVr = dadosFinanceiros?.[0]?.vr || 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Usa o valor digitado ou mantém o valor atual caso o campo esteja vazio
     const payload = {
-      salario: Number(salario),
-      va: Number(va),
-      vr: Number(vr),
+      salario: salario !== '' ? Number(salario) : resumoSalario,
+      va: va !== '' ? Number(va) : resumoVa,
+      vr: vr !== '' ? Number(vr) : resumoVr,
       user_id: user?.sub
     };
     
@@ -31,14 +46,12 @@ export default function Dados() {
     if (error) {
       alert('Erro ao salvar: ' + error.message);
     } else {
+      setSalario('');
+      setVa('');
+      setVr('');
       carregarTudo();
     }
   };
-
-  // Lê os dados confirmados do banco para o Resumo (evita mudar enquanto digita)
-  const resumoSalario = dadosFinanceiros?.[0]?.salario || 0;
-  const resumoVa = dadosFinanceiros?.[0]?.va || 0;
-  const resumoVr = dadosFinanceiros?.[0]?.vr || 0;
 
   return (
     <main className="container" style={{ maxWidth: '1000px', paddingTop: '1rem' }}>
@@ -79,15 +92,15 @@ export default function Dados() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '80%', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.8rem' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Salário / Renda:</span>
-              <span style={{ fontWeight: 'bold', fontSize: '1.15rem' }}>{Number(resumoSalario).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+              <span style={{ fontWeight: 'bold', fontSize: '1.15rem' }}>{formatCurrency(resumoSalario)}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.8rem' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Vale Alimentação:</span>
-              <span style={{ fontWeight: 'bold', fontSize: '1.15rem', color: '#3b82f6' }}>{Number(resumoVa).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+              <span style={{ fontWeight: 'bold', fontSize: '1.15rem', color: '#3b82f6' }}>{formatCurrency(resumoVa)}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.8rem' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Vale Refeição:</span>
-              <span style={{ fontWeight: 'bold', fontSize: '1.15rem', color: '#10b981' }}>{Number(resumoVr).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+              <span style={{ fontWeight: 'bold', fontSize: '1.15rem', color: '#10b981' }}>{formatCurrency(resumoVr)}</span>
             </div>
           </div>
         </div>

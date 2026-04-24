@@ -29,12 +29,30 @@ export default function Dashboard() {
   
   // Novos estados para Filtro Temporal e Privacidade
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [hideValues, setHideValues] = useState(false);
+  const [hideValues, setHideValues] = useState(() => localStorage.getItem('hideValues') === 'true');
   const [showExportMenu, setShowExportMenu] = useState(false);
 
   // Estados para animar as barras de progresso
   const [budgetAnimPerc, setBudgetAnimPerc] = useState(0);
   const [cofrinhoAnimPerc, setCofrinhoAnimPerc] = useState(0);
+
+  // Escuta mudanças de privacidade feitas por outras abas
+  useEffect(() => {
+    const handleSync = () => setHideValues(localStorage.getItem('hideValues') === 'true');
+    window.addEventListener('hideValuesChanged', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('hideValuesChanged', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+  const toggleHideValues = () => {
+    const newVal = !hideValues;
+    setHideValues(newVal);
+    localStorage.setItem('hideValues', newVal.toString());
+    window.dispatchEvent(new Event('hideValuesChanged'));
+  };
 
   // Filtra as transações globais apenas para o mês selecionado
   const startStr = format(startOfMonth(currentDate), 'yyyy-MM-dd');
@@ -229,7 +247,7 @@ export default function Dashboard() {
         
         {/* Direita: Controles de Privacidade e Exportar CSV */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.8rem', position: 'relative', top: '-4px' }}>
-          <button onClick={() => setHideValues(!hideValues)} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-color)', borderRadius: '8px', cursor: 'pointer', padding: '0', width: '105px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '500', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', whiteSpace: 'nowrap' }}>
+          <button onClick={toggleHideValues} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-color)', borderRadius: '8px', cursor: 'pointer', padding: '0', width: '105px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '500', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', whiteSpace: 'nowrap' }}>
             {hideValues ? '👁️ Mostrar' : '🙈 Ocultar'}
           </button>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>

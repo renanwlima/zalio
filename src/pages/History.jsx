@@ -11,6 +11,23 @@ export default function History() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const navigate = useNavigate();
   const { transacoes: todasTransacoes, carregarTudo } = useData();
+  const [hideValues, setHideValues] = useState(() => localStorage.getItem('hideValues') === 'true');
+
+  // Sincroniza a visibilidade com as outras telas
+  useEffect(() => {
+    const handleSync = () => setHideValues(localStorage.getItem('hideValues') === 'true');
+    window.addEventListener('hideValuesChanged', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('hideValuesChanged', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+  const formatCurrency = (value) => {
+    if (hideValues) return 'R$ *****';
+    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
 
   // Filtra as transações globais apenas para o mês selecionado
   const startStr = format(startOfMonth(currentDate), 'yyyy-MM-dd');
@@ -105,7 +122,7 @@ export default function History() {
                   </div>
                   <div className="expense-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <span className="expense-value" style={{ color: '#10b981' }}>
-                      + {Number(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      + {formatCurrency(item.valor)}
                     </span>
                     <div className="action-menu-container">
                       <button onClick={() => setMenuAbertoId(prev => prev === item.id ? null : item.id)} className="action-menu-trigger" title="Opções">
@@ -152,7 +169,7 @@ export default function History() {
                   </div>
                   <div className="expense-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <span className="expense-value" style={{ color: '#ef4444' }}>
-                      - {Number(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      - {formatCurrency(item.valor)}
                     </span>
                     <div className="action-menu-container">
                       <button onClick={() => setMenuAbertoId(prev => prev === item.id ? null : item.id)} className="action-menu-trigger" title="Opções">

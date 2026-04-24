@@ -11,6 +11,23 @@ export default function DespesasFixas() {
   const [menuAbertoId, setMenuAbertoId] = useState(null);
   const { user } = useAuth0();
   const { despesasFixas: despesas, carregarTudo } = useData();
+  const [hideValues, setHideValues] = useState(() => localStorage.getItem('hideValues') === 'true');
+
+  // Sincroniza a visibilidade com as outras telas
+  useEffect(() => {
+    const handleSync = () => setHideValues(localStorage.getItem('hideValues') === 'true');
+    window.addEventListener('hideValuesChanged', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('hideValuesChanged', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+  const formatCurrency = (value) => {
+    if (hideValues) return 'R$ *****';
+    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -123,7 +140,7 @@ export default function DespesasFixas() {
                   </div>
                   <div className="expense-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <span className="expense-value" style={{ color: '#ef4444' }}>
-                      {Number(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      {formatCurrency(item.valor)}
                     </span>
                     <div className="action-menu-container">
                       <button onClick={() => setMenuAbertoId(prev => prev === item.id ? null : item.id)} className="action-menu-trigger" title="Opções">
