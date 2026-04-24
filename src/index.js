@@ -28,7 +28,7 @@ root.render(
        // `Capacitor.isNativePlatform()` detecta se o app está rodando no Android/iOS.
        authorizationParams={{
          redirect_uri: Capacitor.isNativePlatform()
-           ? 'com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.zalio.app/callback'
+           ? 'com.rwl.zalio://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.rwl.zalio/callback'
            : window.location.origin + (window.location.hostname === 'localhost' ? '' : '/zalio')
        }}
      >

@@ -8,7 +8,7 @@ import { Capacitor } from '@capacitor/core';
 
 // Define a URL de redirecionamento dinamicamente (Mobile vs Web)
 const redirectUri = Capacitor.isNativePlatform() 
-  ? 'com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.zalio.app/callback'
+  ? 'com.rwl.zalio://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.rwl.zalio/callback'
   : window.location.origin;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
