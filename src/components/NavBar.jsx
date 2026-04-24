@@ -17,6 +17,14 @@ export default function NavBar({ theme, toggleTheme }) {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const handleLogout = () => {
+    // Define a URL de retorno fixa dependendo se está no GitHub Pages ou no Localhost
+    const returnUrl = window.location.hostname.includes('github.io') 
+      ? 'https://renanwlima.github.io/zalio/' 
+      : window.location.origin;
+    logout({ logoutParams: { returnTo: returnUrl } });
+  };
+
   return (
     <>
       <style>
@@ -172,7 +180,7 @@ export default function NavBar({ theme, toggleTheme }) {
 
           {/* Botão de Sair */}
           <button 
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin + window.location.pathname } })}
+            onClick={handleLogout}
             style={{
               margin: 0,
               background: 'transparent',
@@ -220,7 +228,7 @@ export default function NavBar({ theme, toggleTheme }) {
           </button>
 
           <button 
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin + window.location.pathname } })}
+            onClick={handleLogout}
             style={{
               margin: 0,
               background: 'transparent',
