@@ -21,13 +21,13 @@ export default function NavBar({ theme, toggleTheme }) {
 
   const handleLogout = async () => {
     if (Capacitor.isNativePlatform()) {
-      // 1. Limpa a sessão local no aplicativo instantaneamente
-      logout({ logoutParams: { localOnly: true } });
-      
-      // 2. Abre a URL de logout do Auth0 para destruir o cookie salvo no celular
+      // 1. Abre a URL de logout do Auth0 no navegador nativo para destruir o cookie salvo
       await Browser.open({ 
         url: 'https://dev-7tf743azyjk8acdg.us.auth0.com/v2/logout?client_id=0iQvuP6ljEvDIMKlO8dUKujViEe2HvKk&returnTo=com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.zalio.app/callback' 
       });
+
+      // 2. Limpa a sessão local no app instantaneamente (A flag localOnly DEVE ficar fora do logoutParams)
+      logout({ localOnly: true });
     } else {
       // Define a URL de retorno fixa dependendo se está no GitHub Pages ou no Localhost
       const returnUrl = window.location.hostname.includes('github.io') 
