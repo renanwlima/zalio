@@ -26,7 +26,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.zalio.app" android:host="dev-7tf743azyjk8acdg.us.auth0.com" android:pathPrefix="/capacitor/com.zalio.app/callback" />
+                <data android:scheme="com.rwl.zalio" android:host="dev-7tf743azyjk8acdg.us.auth0.com" android:pathPrefix="/capacitor/com.rwl.zalio/callback" />
             </intent-filter>
 
         </activity>

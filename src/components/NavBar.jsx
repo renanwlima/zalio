@@ -23,7 +23,7 @@ export default function NavBar({ theme, toggleTheme }) {
     if (Capacitor.isNativePlatform()) {
       // Intercepta o logout e usa o Browser do Capacitor ao invés do redirecionamento web padrão
       logout({
-        logoutParams: { returnTo: 'com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.zalio.app/callback' },
+        logoutParams: { returnTo: 'com.rwl.zalio://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.rwl.zalio/callback' },
         async openUrl(url) {
           await Browser.open({ url });
         }

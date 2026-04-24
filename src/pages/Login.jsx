@@ -31,7 +31,7 @@ export default function Login(){
     if (Capacitor.isNativePlatform()) {
       const listener = CapApp.addListener('appUrlOpen', async ({ url }) => {
         // Se a URL for de retorno do Logout (não tem o parâmetro "state=" de login)
-        if (url.includes('com.zalio.app/callback') && !url.includes('state=')) {
+        if (url.includes('com.rwl.zalio/callback') && !url.includes('state=')) {
           // Apenas fecha o navegador nativo silenciosamente
           await Browser.close().catch(() => {});
           return;
