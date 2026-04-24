@@ -52,7 +52,6 @@ export default function Login(){
 
   const handleLogin = async () => {
     await loginWithRedirect({
-      authorizationParams: { prompt: 'login' },
       async openUrl(url) {
         // Se for celular, usa o navegador nativo interno (melhor UX e evita abrir o Chrome)
         if (Capacitor.isNativePlatform()) {
