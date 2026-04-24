@@ -91,6 +91,8 @@ body {
   flex: 1; /* Faz o conteúdo ocupar o espaço disponível, empurrando o footer */
   width: 100%;
   overflow-y: auto; /* Permite rolagem apenas aqui dentro se necessário */
+  -webkit-overflow-scrolling: touch; /* Habilita a rolagem suave por toque nativa do iOS */
+  min-height: 0; /* Corrige o bug do Safari/iOS que impedia a rolagem em layouts Flexbox */
   padding: 1rem; /* Espaçamento interno para não colar nas bordas em telas pequenas */
   display: flex; /* Habilita o Flexbox para centralizar os filhos */
   flex-direction: column; /* Garante a direção correta do fluxo */
@@ -619,13 +621,22 @@ button:active {
 @media (max-width: 1200px) {
   /* 0. Desativa o zoom customizado no mobile para evitar bugs de cálculo do Android */
   html { zoom: 1 !important; }
-  body, .app-layout, .loader-container { height: 100vh !important; }
+  body, .app-layout, .loader-container { 
+    height: 100vh !important; /* Fallback para aparelhos antigos */
+    height: 100dvh !important; /* dVH usa o tamanho real da tela no iOS, descontando a barra do sistema */
+  }
 
-  /* 1. Remove o excesso de tamanho no topo e ajusta espaçamento interno */
+  /* 1. Remove o excesso de tamanho no topo, ajusta espaçamento interno e cobre a Safe Area do iOS */
   .nav {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px)) !important;
     padding-bottom: 1rem !important;
     padding-left: 1rem !important;
     padding-right: 1rem !important;
+  }
+
+  /* 1.1 Preenche a área do Home Indicator (barra de gestos) no rodapé do iOS */
+  .footer {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
