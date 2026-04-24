@@ -52,10 +52,12 @@ export default function Login(){
 
   const handleLogin = async () => {
     await loginWithRedirect({
+      authorizationParams: { prompt: 'login' },
       async openUrl(url) {
         // Se for celular, usa o navegador nativo interno (melhor UX e evita abrir o Chrome)
         if (Capacitor.isNativePlatform()) {
-          await Browser.open({ url });
+          // Adicionado windowName: '_self' para evitar instâncias presas no Capacitor
+          await Browser.open({ url, windowName: '_self' });
         } else {
           // Se for PC, redireciona a página normalmente
           window.location.assign(url);
