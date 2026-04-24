@@ -627,16 +627,31 @@ button:active {
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important; /* Trava o corpo principal */
-    position: relative !important;
+    position: fixed !important; /* SOLUÇÃO DEFINITIVA IOS: Prende a página nas 4 pontas da tela */
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
   }
 
   .app-layout { 
     height: 100% !important; 
     width: 100% !important;
-    position: relative !important; 
+    position: absolute !important; /* Preenche estritamente o espaço fixo sem estourar */
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important; /* Força a camada interna (main-content) a habilitar a barra de rolagem */
+  }
+
+  .main-content {
+    flex: 1 1 auto !important; /* Magia do Flexbox: força o webkit do iOS a calcular o limite da página */
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   /* 1. Remove o excesso de tamanho no topo, ajusta espaçamento interno e cobre a Safe Area do iOS */
