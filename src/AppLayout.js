@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import './App.css';
 
 function AppLayout() {
@@ -17,6 +18,16 @@ function AppLayout() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
+    
+    // Diz ao aplicativo nativo (iOS/Android) para expandir e cobrir a área da bateria/notch
+    if (Capacitor.isNativePlatform()) {
+      try {
+        StatusBar.setOverlaysWebView({ overlay: true });
+        StatusBar.setStyle({ style: theme === 'dark' ? Style.Dark : Style.Light });
+      } catch (err) {
+        console.log('StatusBar plugin não encontrado.', err);
+      }
+    }
   }, [theme]);
 
   useEffect(() => {
