@@ -50,6 +50,10 @@ export default function NavBar({ theme, toggleTheme }) {
             box-sizing: border-box;
             position: relative;
           }
+          .nav.nav-container {
+            padding-top: ${Capacitor.isNativePlatform() ? 'calc(1.2rem + env(safe-area-inset-top, 0px))' : '0.8rem'} !important;
+            padding-bottom: 0.8rem !important;
+          }
           .nav-desktop-links {
             display: flex;
             gap: 1.5rem;
@@ -159,10 +163,7 @@ export default function NavBar({ theme, toggleTheme }) {
         `}
       </style>
 
-      <nav 
-        className="nav nav-container"
-        style={{ paddingTop: Capacitor.isNativePlatform() ? 'calc(2.5rem + env(safe-area-inset-top, 0px))' : '1rem' }}
-      >
+      <nav className="nav nav-container">
         {/* Logo */}
         <div className="logo-container">
           <Link to="/" className="nav-logo" style={{ fontSize: '1.8rem', fontWeight: 'bold', textDecoration: 'none', lineHeight: '32px', height: '32px', display: 'flex', alignItems: 'center' }}>Zalio</Link>
@@ -222,7 +223,7 @@ export default function NavBar({ theme, toggleTheme }) {
       {/* Menu Lateral (Mobile) */}
       <div 
         className={`side-menu ${isMenuOpen ? 'open' : ''}`}
-        style={{ paddingTop: Capacitor.isNativePlatform() ? 'calc(3.5rem + env(safe-area-inset-top, 0px))' : '2rem' }}
+        style={{ paddingTop: Capacitor.isNativePlatform() ? 'calc(1.5rem + env(safe-area-inset-top, 0px))' : '1.5rem' }}
       >
         <button className="close-btn" onClick={toggleMenu} aria-label="Fechar Menu">✕</button>
         
