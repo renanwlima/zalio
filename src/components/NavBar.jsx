@@ -49,7 +49,6 @@ export default function NavBar({ theme, toggleTheme }) {
             width: 100%;
             box-sizing: border-box;
             position: relative;
-            padding-top: ${Capacitor.isNativePlatform() ? 'max(2.8rem, env(safe-area-inset-top))' : '1rem'};
           }
           .nav-desktop-links {
             display: flex;
@@ -93,7 +92,6 @@ export default function NavBar({ theme, toggleTheme }) {
             display: flex;
             flex-direction: column;
             padding: 2rem 1.5rem;
-            padding-top: ${Capacitor.isNativePlatform() ? 'max(3.8rem, calc(1rem + env(safe-area-inset-top)))' : '2rem'};
             gap: 1.2rem;
           }
           .side-menu.open {
@@ -161,7 +159,10 @@ export default function NavBar({ theme, toggleTheme }) {
         `}
       </style>
 
-      <nav className="nav nav-container">
+      <nav 
+        className="nav nav-container"
+        style={{ paddingTop: Capacitor.isNativePlatform() ? 'calc(2.5rem + env(safe-area-inset-top, 0px))' : '1rem' }}
+      >
         {/* Logo */}
         <div className="logo-container">
           <Link to="/" className="nav-logo" style={{ fontSize: '1.8rem', fontWeight: 'bold', textDecoration: 'none', lineHeight: '32px', height: '32px', display: 'flex', alignItems: 'center' }}>Zalio</Link>
@@ -219,7 +220,10 @@ export default function NavBar({ theme, toggleTheme }) {
       <div className={`side-menu-overlay ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}></div>
 
       {/* Menu Lateral (Mobile) */}
-      <div className={`side-menu ${isMenuOpen ? 'open' : ''}`}>
+      <div 
+        className={`side-menu ${isMenuOpen ? 'open' : ''}`}
+        style={{ paddingTop: Capacitor.isNativePlatform() ? 'calc(3.5rem + env(safe-area-inset-top, 0px))' : '2rem' }}
+      >
         <button className="close-btn" onClick={toggleMenu} aria-label="Fechar Menu">✕</button>
         
         {isAuthenticated && user && (
