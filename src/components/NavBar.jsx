@@ -49,6 +49,7 @@ export default function NavBar({ theme, toggleTheme }) {
             width: 100%;
             box-sizing: border-box;
             position: relative;
+            padding-top: ${Capacitor.isNativePlatform() ? 'calc(1.5rem + env(safe-area-inset-top, 0px))' : '0'};
           }
           .nav-desktop-links {
             display: flex;
@@ -92,6 +93,7 @@ export default function NavBar({ theme, toggleTheme }) {
             display: flex;
             flex-direction: column;
             padding: 2rem 1.5rem;
+            padding-top: ${Capacitor.isNativePlatform() ? 'calc(2.5rem + env(safe-area-inset-top, 0px))' : '2rem'};
             gap: 1.2rem;
           }
           .side-menu.open {
