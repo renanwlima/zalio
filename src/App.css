@@ -679,15 +679,21 @@ button:active {
   }
 
   /* 5. Remove a borda e expande o layout para aproveitar a tela toda no celular/app nativo */
-  .container,
   .main-content,
-  .native-mobile-app .container,
   .native-mobile-app .main-content {
-    width: 100% !important;
+    padding-left: 0.2rem !important;
+    padding-right: 0.2rem !important;
+  }
+
+  .container,
+  .native-mobile-app .container {
+    width: auto !important;
     max-width: 100% !important;
     border: none !important;
     box-shadow: none !important;
-    margin: 0 !important;
+    margin: 0 0.5rem !important; /* Desgruda da tela só o suficiente para a curva do Android poder aparecer */
+    border-radius: 16px !important; /* Força a curva */
+    overflow: hidden; /* Garante o corte arredondado do fundo */
     padding-left: 1.2rem !important;
     padding-right: 1.2rem !important;
   }
