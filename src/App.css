@@ -33,7 +33,7 @@
 * {
   box-sizing: border-box;
   /* Estilos de scrollbar para Firefox */
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 html {
@@ -463,26 +463,22 @@ button:active {
 }
 /* --- Estilos da Barra de Rolagem Moderna (Webkit) --- */
 ::-webkit-scrollbar {
-  width: 8px; /* Largura da barra de rolagem vertical */
-  height: 8px; /* Altura da barra de rolagem horizontal */
+  display: none;
 }
 
 /* Fundo da barra de rolagem (o "trilho") */
 ::-webkit-scrollbar-track {
-  background: var(--bg-color); /* Usa a cor de fundo da sua aplicação para o trilho */
-  border-radius: 10px;
+  display: none;
 }
 
 /* O "arrastador" da barra de rolagem (o "thumb") */
 ::-webkit-scrollbar-thumb {
-  background: var(--text-secondary); /* Usa uma cor secundária do texto para o arrastador */
-  border-radius: 10px;
-  border: 2px solid var(--bg-color); /* Adiciona uma borda com a cor de fundo da app para um efeito de "padding" */
+  display: none;
 }
 
 /* Arrastador ao passar o mouse */
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-main); /* Cor do texto principal ao passar o mouse */
+  display: none;
 }
 
 @media print {

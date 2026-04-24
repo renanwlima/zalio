@@ -30,6 +30,12 @@ export default function Login(){
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       const listener = CapApp.addListener('appUrlOpen', async ({ url }) => {
+        // Se a URL for de retorno do Logout (não tem o parâmetro "state=" de login)
+        if (url.includes('com.zalio.app/callback') && !url.includes('state=')) {
+          // Apenas fecha o navegador nativo silenciosamente
+          await Browser.close().catch(() => {});
+          return;
+        }
         // Verifica se a URL de retorno tem os parâmetros de sucesso ou erro do Auth0
         if (url.includes('state=') && (url.includes('error=') || url.includes('code='))) {
           // Fecha o navegador nativo (Custom Tab) que estava sobreposto
@@ -55,8 +61,7 @@ export default function Login(){
       async openUrl(url) {
         // Se for celular, usa o navegador nativo interno (melhor UX e evita abrir o Chrome)
         if (Capacitor.isNativePlatform()) {
-          // Adicionado windowName: '_self' para evitar instâncias presas no Capacitor
-          await Browser.open({ url, windowName: '_self' });
+          await Browser.open({ url });
         } else {
           // Se for PC, redireciona a página normalmente
           window.location.assign(url);

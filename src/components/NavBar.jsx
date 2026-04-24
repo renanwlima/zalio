@@ -1,6 +1,8 @@
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState } from 'react';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 
 export default function NavBar({ theme, toggleTheme }) {
   const { logout, user, isAuthenticated } = useAuth0();
@@ -17,12 +19,22 @@ export default function NavBar({ theme, toggleTheme }) {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleLogout = () => {
-    // Define a URL de retorno fixa dependendo se está no GitHub Pages ou no Localhost
-    const returnUrl = window.location.hostname.includes('github.io') 
-      ? 'https://renanwlima.github.io/zalio/' 
-      : window.location.origin;
-    logout({ logoutParams: { returnTo: returnUrl } });
+  const handleLogout = async () => {
+    if (Capacitor.isNativePlatform()) {
+      // 1. Limpa a sessão local no aplicativo instantaneamente
+      logout({ logoutParams: { localOnly: true } });
+      
+      // 2. Abre a URL de logout do Auth0 para destruir o cookie salvo no celular
+      await Browser.open({ 
+        url: 'https://dev-7tf743azyjk8acdg.us.auth0.com/v2/logout?client_id=0iQvuP6ljEvDIMKlO8dUKujViEe2HvKk&returnTo=com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.zalio.app/callback' 
+      });
+    } else {
+      // Define a URL de retorno fixa dependendo se está no GitHub Pages ou no Localhost
+      const returnUrl = window.location.hostname.includes('github.io') 
+        ? 'https://renanwlima.github.io/zalio/' 
+        : window.location.origin;
+      logout({ logoutParams: { returnTo: returnUrl } });
+    }
   };
 
   return (
