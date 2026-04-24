@@ -4,20 +4,18 @@ import {
   Chart as ChartJS, 
   Tooltip, 
   Legend, 
-  CategoryScale, 
-  LinearScale, 
-  BarElement, 
+  ArcElement, 
   Title,
-  BarController
+  DoughnutController
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Doughnut } from 'react-chartjs-2';
 import { CATEGORIAS, CATEGORY_COLORS } from '../services/storage';
 import { startOfMonth, endOfMonth, format, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useData } from '../contexts/DataContext';
 
 // Registrando componentes do Chart.js
-ChartJS.register(Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, BarController);
+ChartJS.register(Tooltip, Legend, ArcElement, Title, DoughnutController);
 
 export default function Dashboard() {
   const { theme } = useOutletContext();
@@ -170,9 +168,9 @@ export default function Dashboard() {
         backgroundColor: currentColors,
         borderWidth: 2, 
         borderColor: theme === 'dark' ? '#1f2937' : '#ffffff', // Adiciona uma separação elegante entre as fatias
-        borderRadius: 6, // Deixa a ponta das barras arredondadas
+        borderRadius: 6, // Deixa as pontas das fatias da rosquinha suavemente arredondadas
         hoverOffset: 15, // Aumenta bastante o efeito de "pular" ao passar o mouse
-        barThickness: 40, // Força as barras a ficarem mais largas e evidentes
+        cutout: '70%', // Transforma a pizza em rosquinha (define o tamanho do furo no meio)
       },
     ],
   };
@@ -200,12 +198,6 @@ export default function Dashboard() {
             return `${label}: ${formattedVal}`;
           }
         }
-      }
-    },
-    scales: {
-      y: { 
-        beginAtZero: true,
-        suggestedMax: Math.max(...rawData, 0) // Fixa a torre de valores baseada no maior número real, evitando a animação da escala
       }
     }
   };
@@ -357,9 +349,9 @@ export default function Dashboard() {
         <div className="dashboard-content" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', marginTop: '1rem', opacity: isLoadingGlobal ? 0.5 : 1, transition: 'opacity 0.4s ease' }}>
                 <div 
                   className="chart-container" 
-                  style={{ width: '100%', maxWidth: '550px', height: '221px', position: 'relative', flexShrink: 0, margin: '0 auto' }}
+                  style={{ width: '100%', maxWidth: '280px', height: '280px', position: 'relative', flexShrink: 0, margin: '0 auto' }}
                 >
-                  <Bar data={dataGraph} options={options} />
+                  <Doughnut data={dataGraph} options={options} />
                 </div>
                 
                 <div className="custom-legend" style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
