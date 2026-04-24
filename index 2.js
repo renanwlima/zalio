@@ -21,7 +21,7 @@ root.render(
     // Se a URL tiver uma porta (ex: 3000 do PC), é Web. No Android nativo a porta é vazia.
       redirect_uri: window.location.port !== ''
         ? window.location.origin
-        : "com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/android/com.zalio.app/callback"
+             : "com.rwl.zalio://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.rwl.zalio/callback"
   }}
 >
   <BrowserRouter>

@@ -22,7 +22,7 @@ root.render(
   clientId="0iQvuP6ljEvDIMKlO8dUKujViEe2HvKk"
   authorizationParams={{
     // Forçando a URL que o Android espera
-    redirect_uri: 'com.zalio.app://dev-7tf743azyjk8acdg.us.auth0.com/android/com.zalio.app/callback'
+    redirect_uri: 'com.rwl.zalio://dev-7tf743azyjk8acdg.us.auth0.com/capacitor/com.rwl.zalio/callback'
   }}
 >
   <RouterProvider router={router} />
