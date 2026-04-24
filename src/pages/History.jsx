@@ -3,15 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import { CATEGORY_COLORS } from '../services/storage';
 import { supabase } from '../supabaseClient';
 import { useData } from '../contexts/DataContext';
+import { startOfMonth, endOfMonth, format, addMonths, subMonths } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function History() {
   const [menuAbertoId, setMenuAbertoId] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
   const navigate = useNavigate();
   const { transacoes: todasTransacoes, carregarTudo } = useData();
 
-  // Separa as transações que já vieram do cache global
-  const entradas = todasTransacoes.filter(t => t.tipo === 'entrada');
-  const transacoes = todasTransacoes.filter(t => t.tipo === 'saida');
+  // Filtra as transações globais apenas para o mês selecionado
+  const startStr = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+  const endStr = format(endOfMonth(currentDate), 'yyyy-MM-dd');
+  
+  const currentMonthTransactions = todasTransacoes.filter(t => {
+    const tDate = t.date.substring(0, 10);
+    return tDate >= startStr && tDate <= endStr;
+  });
+
+  // Separa as transações filtradas por tipo
+  const entradas = currentMonthTransactions.filter(t => t.tipo === 'entrada');
+  const transacoes = currentMonthTransactions.filter(t => t.tipo === 'saida');
+
+  const handlePrevMonth = useCallback(() => setCurrentDate(subMonths(currentDate, 1)), [currentDate]);
+  const handleNextMonth = useCallback(() => setCurrentDate(addMonths(currentDate, 1)), [currentDate]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -43,7 +58,26 @@ export default function History() {
 
   return (
     <main className="container" style={{maxWidth: '1100px'}}>
-      <h2 style={{textAlign: 'center', marginBottom: '2rem'}}>Histórico de Lançamentos</h2>
+      <div className="dashboard-header" style={{ marginBottom: '2rem' }}>
+        {/* Esquerda: Calendário */}
+        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <div className="calendar-nav-container" style={{ display: 'flex', alignItems: 'center', background: 'var(--card-bg)', height: '40px', padding: '0 8px', borderRadius: '8px', border: '1px solid var(--border-color)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <button onClick={handlePrevMonth} aria-label="Mês anterior" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', outline: 'none', boxShadow: 'none', WebkitTapHighlightColor: 'transparent', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-main)', width: '30px', height: '100%', padding: 0, position: 'relative', top: '-8px' }}>&#10094;</button>
+            <span style={{ textTransform: 'capitalize', fontWeight: 'bold', width: '130px', textAlign: 'center', fontSize: '1rem', margin: 0, color: 'var(--text-main)' }}>
+              {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+            </span>
+            <button onClick={handleNextMonth} aria-label="Próximo mês" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', outline: 'none', boxShadow: 'none', WebkitTapHighlightColor: 'transparent', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-main)', width: '30px', height: '100%', padding: 0, position: 'relative', top: '-8px' }}>&#10095;</button>
+          </div>
+        </div>
+
+        {/* Centro: Título Centralizado */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <h2 style={{ margin: 0, textAlign: 'center', fontSize: '1.5rem', whiteSpace: 'nowrap' }}>Histórico de Lançamentos</h2>
+        </div>
+
+        {/* Direita: Vazio para balancear o grid da tela */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}></div>
+      </div>
       
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3rem', alignItems: 'flex-start' }}>
         

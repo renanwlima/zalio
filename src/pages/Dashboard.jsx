@@ -159,6 +159,11 @@ export default function Dashboard() {
   const valorCofrinho = cofrinho.saldo;
   const metaCofrinho = cofrinho.meta;
 
+  // Descobre qual foi a maior transação (gasto ou entrada) do mês para exibir como destaque
+  const maiorTransacao = isSaidas
+    ? [...transacoes].sort((a, b) => Number(b.valor) - Number(a.valor))[0]
+    : [...entradas].sort((a, b) => Number(b.valor) - Number(a.valor))[0];
+
   const dataGraph = {
     labels: currentLabels,
     datasets: [
@@ -169,7 +174,7 @@ export default function Dashboard() {
         borderWidth: 2, 
         borderColor: theme === 'dark' ? '#1f2937' : '#ffffff', // Adiciona uma separação elegante entre as fatias
         borderRadius: 6, // Deixa as pontas das fatias da rosquinha suavemente arredondadas
-        hoverOffset: 15, // Aumenta bastante o efeito de "pular" ao passar o mouse
+        hoverOffset: 12, // Efeito de "pular" ajustado para o novo tamanho
         cutout: '70%', // Transforma a pizza em rosquinha (define o tamanho do furo no meio)
       },
     ],
@@ -183,7 +188,7 @@ export default function Dashboard() {
       easing: 'easeOutQuart'
     },
     layout: {
-      padding: 0 // Espaço interno zerado para a barra
+      padding: 15 // Espaço ajustado para a rosquinha não cortar ao passar o mouse
     },
     plugins: {
       legend: {
@@ -346,17 +351,25 @@ export default function Dashboard() {
               <p style={{textAlign:'center', color: 'var(--text-secondary)'}}>Nenhuma {isSaidas ? 'saída' : 'entrada'} registrada neste mês.</p>
             </div>
       ) : (
-        <div className="dashboard-content" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', marginTop: '1rem', opacity: isLoadingGlobal ? 0.5 : 1, transition: 'opacity 0.4s ease' }}>
+        /* Mudamos o alignItems de 'center' para 'flex-start' para travar o título no topo */
+        <div className="dashboard-content" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '2rem', width: '100%', marginTop: '0.5rem', opacity: isLoadingGlobal ? 0.5 : 1, transition: 'opacity 0.4s ease' }}>
                 <div 
                   className="chart-container" 
-                  style={{ width: '100%', maxWidth: '280px', height: '280px', position: 'relative', flexShrink: 0, margin: '0 auto' }}
+                  style={{ width: '240px', height: '240px', position: 'relative', flexShrink: 0, margin: '0 auto' }}
                 >
                   <Doughnut data={dataGraph} options={options} />
+                  {/* Texto Centralizado no Buraco da Rosquinha */}
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>Total</span>
+                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-main)' }}>
+                      {formatCurrency(isSaidas ? totalGasto : totalEntradas)}
+                    </strong>
+                  </div>
                 </div>
                 
-                <div className="custom-legend" style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div className="custom-legend" style={{ flex: '1 1 250px', display: 'flex', flexDirection: 'column' }}>
                   <h3 style={{ marginTop: 0, marginBottom: '1.2rem', fontSize: '1.1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.8rem' }}>Resumo por {isSaidas ? 'Categoria' : 'Descrição'}</h3>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     {currentLabels.map((cat, index) => ({ cat, valor: rawData[index], color: currentColors[index] }))
                       .sort((a, b) => a.cat.localeCompare(b.cat))
                       .map(({ cat, valor, color }) => (
@@ -370,6 +383,22 @@ export default function Dashboard() {
                     ))}
                   </ul>
                 </div>
+
+                {/* Destaque do Mês (Preenche o espaço vazio elegantemente) */}
+                {maiorTransacao && (
+                  <div style={{ width: '100%', marginTop: '1rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)' }}>Destaque do Mês</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-color)', padding: '1rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Maior {isSaidas ? 'Gasto' : 'Entrada'}</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{maiorTransacao.descricao}</span>
+                      </div>
+                      <strong style={{ color: isSaidas ? '#ef4444' : '#10b981', fontSize: '1.15rem' }}>
+                        {formatCurrency(maiorTransacao.valor)}
+                      </strong>
+                    </div>
+                  </div>
+                )}
             </div>
           )}
         </div>
