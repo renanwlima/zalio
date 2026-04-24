@@ -620,10 +620,23 @@ button:active {
 /* --- Responsividade da Barra de Navegação --- */
 @media (max-width: 1200px) {
   /* 0. Desativa o zoom customizado no mobile para evitar bugs de cálculo do Android */
-  html { zoom: 1 !important; }
-  body, .app-layout, .loader-container { 
-    height: 100vh !important; /* Fallback para aparelhos antigos */
-    height: 100dvh !important; /* dVH usa o tamanho real da tela no iOS, descontando a barra do sistema */
+  html, body { 
+    zoom: 1 !important; 
+    height: 100% !important; 
+    position: fixed !important; /* Prende o fundo no iOS para evitar que a tela toda arraste (Rubber-banding) */
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  #root, .loader-container { 
+    height: 100% !important; 
+    width: 100% !important; 
+  }
+
+  .app-layout { 
+    position: absolute !important; /* Estica o layout perfeitamente sem depender de 100vh */
+    top: 0; bottom: 0; left: 0; right: 0; 
+    height: auto !important; 
   }
 
   /* 1. Remove o excesso de tamanho no topo, ajusta espaçamento interno e cobre a Safe Area do iOS */
