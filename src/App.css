@@ -622,33 +622,30 @@ button:active {
   /* 0. Desativa o zoom customizado no mobile para evitar bugs de cálculo do Android */
   html, body, #root { 
     zoom: 1 !important; 
-    height: 100vh !important; /* Fallback iOS antigo */
-    height: 100dvh !important; /* Moderno: pega o tamanho exato descontando a bateria/notch */
     width: 100% !important;
+    height: auto !important; /* Deixa o iOS calcular a altura naturalmente */
+    min-height: 100dvh !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: hidden !important; /* Trava o corpo principal */
-    position: absolute !important;
+    overflow: visible !important; /* DESTRAVA O SCROLL NATIVO DO CELULAR */
+    position: relative !important;
     background-color: var(--bg-color) !important; /* Pinta a "borda" SafeArea com a cor do seu app */
   }
 
   .app-layout { 
-    height: 100vh !important;
-    height: 100dvh !important; 
     width: 100% !important;
-    position: absolute !important;
-    top: 0; left: 0; right: 0; bottom: 0;
+    height: auto !important;
+    min-height: 100dvh !important;
+    position: relative !important;
     display: flex !important;
     flex-direction: column !important;
-    overflow: hidden !important; /* Força a camada interna (main-content) a habilitar a barra de rolagem */
+    overflow: visible !important;
   }
 
   .main-content {
-    flex: 1 1 0px !important; /* O SEGREDO DO IOS: flex-basis 0px impede que o conteúdo estique a tela ao infinito */
-    min-height: 0 !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    flex: 1 !important; 
+    height: auto !important;
+    overflow: visible !important; /* O corpo da página rola por inteiro */
   }
 
   /* 1. Remove o excesso de tamanho no topo, ajusta espaçamento interno e cobre a Safe Area do iOS */
