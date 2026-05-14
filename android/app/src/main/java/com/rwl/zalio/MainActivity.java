@@ -1,4 +1,4 @@
-package com.zalio.app;
+package com.rwl.zalio;
 
 import com.getcapacitor.BridgeActivity;
 
