@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { App as CapacitorApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import './App.css';
 
 // Componente de Loader global
@@ -22,6 +23,7 @@ function App() {
       // Verifica se a URL é a resposta do Auth0
       if (url.includes('state=') && (url.includes('code=') || url.includes('error='))) {
         try {
+          await Browser.close();
           await handleRedirectCallback(url);
         } catch (error) {
           console.error("Erro ao processar o login:", error);
