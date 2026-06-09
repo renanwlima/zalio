@@ -377,9 +377,9 @@ export default function Dashboard() {
                   <Doughnut data={dataGraph} options={options} />
                   {/* Texto Centralizado no Buraco da Rosquinha */}
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>Total</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>Saldo Restante</span>
                     <strong style={{ fontSize: '1.15rem', color: 'var(--text-main)' }}>
-                      {formatCurrency(isSaidas ? totalGasto : totalEntradas)}
+                      {formatCurrency(totalEntradas - totalGasto)}
                     </strong>
                   </div>
                 </div>
