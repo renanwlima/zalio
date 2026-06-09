@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useData } from '../contexts/DataContext';
+import { addMonths, setDate } from 'date-fns';
 
 export default function AddIncome() {
   const navigate = useNavigate();
@@ -23,10 +24,20 @@ export default function AddIncome() {
     e.preventDefault();
     if (!descricao || !valor) return;
     
+    let submissionDate = new Date(data + 'T00:00:00'); // Analisa a data como local para evitar bugs de fuso horário
+    const day = submissionDate.getDate();
+
+    // Se a descrição contiver "salário" (ignorando maiúsculas/minúsculas) e a data for entre dia 27 e 31
+    if (descricao.toLowerCase().includes('salário') && day >= 27 && day <= 31) {
+      // Move a data para o primeiro dia do mês seguinte
+      const nextMonth = addMonths(submissionDate, 1);
+      submissionDate = setDate(nextMonth, 1);
+    }
+
     const payload = {
       descricao: descricao,
       valor: Number(valor), // Garante que o valor é um número
-      date: data,
+      date: submissionDate.toISOString().split('T')[0], // Formata de volta para YYYY-MM-DD
       tipo: 'entrada',
       user_id: user?.sub
     };

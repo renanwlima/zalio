@@ -117,7 +117,7 @@ export default function History() {
                   <div className="expense-info" style={{ flexGrow: 1 }}>
                     <strong>{item.descricao}</strong>
                     <span className="expense-date">
-                      {new Date(item.date).toLocaleDateString('pt-BR')}
+                      {new Date(item.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                     </span>
                   </div>
                   <div className="expense-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -164,7 +164,7 @@ export default function History() {
                   <div className="expense-info" style={{ flexGrow: 1 }}>
                     <strong>{item.descricao}</strong>
                     <span className="expense-date">
-                      {new Date(item.date).toLocaleDateString('pt-BR')} • <span style={{color: CATEGORY_COLORS[item.categoria], fontWeight: 500}}>{item.categoria}</span>
+                      {new Date(item.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} • <span style={{color: CATEGORY_COLORS[item.categoria], fontWeight: 500}}>{item.categoria}</span>
                     </span>
                   </div>
                   <div className="expense-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
