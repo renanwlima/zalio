@@ -177,10 +177,9 @@ export default function Dashboard() {
   const valorCofrinho = cofrinho.saldo;
   const metaCofrinho = cofrinho.meta;
 
-  // Descobre qual foi a maior transação (gasto ou entrada) do mês para exibir como destaque
-  const maiorTransacao = isSaidas
-    ? [...transacoes].sort((a, b) => Number(b.valor) - Number(a.valor))[0]
-    : [...entradas].sort((a, b) => Number(b.valor) - Number(a.valor))[0];
+  // Descobre quais foram as maiores transações (gasto e entrada) do mês para exibir como destaques
+  const maiorGasto = [...transacoes].sort((a, b) => Number(b.valor) - Number(a.valor))[0];
+  const maiorEntrada = [...entradas].sort((a, b) => Number(b.valor) - Number(a.valor))[0];
 
   const dataGraph = {
     labels: currentLabels,
@@ -402,18 +401,33 @@ export default function Dashboard() {
                   </ul>
                 </div>
 
-                {/* Destaque do Mês (Preenche o espaço vazio elegantemente) */}
-                {maiorTransacao && (
+            {/* Destaques do Mês (Preenche o espaço vazio elegantemente) */}
+            {(maiorGasto || maiorEntrada) && (
                   <div style={{ width: '100%', marginTop: '1rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)' }}>Destaque do Mês</h3>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)' }}>Destaques do Mês</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {maiorGasto && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-color)', padding: '1rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                        <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Maior {isSaidas ? 'Gasto' : 'Entrada'}</span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{maiorTransacao.descricao}</span>
+                        <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Maior Gasto</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{maiorGasto.descricao}</span>
                       </div>
-                      <strong style={{ color: isSaidas ? '#ef4444' : '#10b981', fontSize: '1.15rem' }}>
-                        {formatCurrency(maiorTransacao.valor)}
+                      <strong style={{ color: '#ef4444', fontSize: '1.15rem' }}>
+                        {formatCurrency(maiorGasto.valor)}
                       </strong>
+                    </div>
+                  )}
+                  {maiorEntrada && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-color)', padding: '1rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Maior Entrada</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{maiorEntrada.descricao}</span>
+                      </div>
+                      <strong style={{ color: '#10b981', fontSize: '1.15rem' }}>
+                        {formatCurrency(maiorEntrada.valor)}
+                      </strong>
+                    </div>
+                  )}
                     </div>
                   </div>
                 )}
