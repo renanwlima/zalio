@@ -334,18 +334,10 @@ export default function Dashboard() {
       </div>
 
       {/* --- BARRA SUPERIOR DE CONTROLE (COMPACTA) --- */}
-      <div className="no-print" style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '0.65rem',
-        marginBottom: '0.65rem',
-        flexShrink: 0
-      }}>
+      <div className="no-print dashboard-top-controls">
         {/* Navegador de Mês */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <div style={{
+        <div className="dashboard-month-nav">
+          <div className="calendar-nav-box" style={{
             display: 'flex',
             alignItems: 'center',
             background: 'var(--card-bg)',
@@ -401,7 +393,7 @@ export default function Dashboard() {
           {!isCurrentMonth && (
             <button 
               onClick={handleCurrentMonth}
-              className="btn-secondary"
+              className="btn-secondary btn-today"
               style={{ padding: '0.35rem 0.7rem', fontSize: '0.78rem' }}
             >
               Hoje
@@ -410,32 +402,30 @@ export default function Dashboard() {
         </div>
 
         {/* Ações Rápidas & Privacidade */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <Link to="/adicionar-entrada" className="btn-primary" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '0.4rem 0.8rem', fontSize: '0.825rem' }}>
-            <IconPlus size={14} /> Nova Entrada
+        <div className="dashboard-actions-wrap">
+          <Link to="/adicionar-entrada" className="btn-primary btn-action-entrada" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+            <IconPlus size={14} /> <span>Nova Entrada</span>
           </Link>
 
-          <Link to="/adicionar-saida" className="btn-primary" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)', padding: '0.4rem 0.8rem', fontSize: '0.825rem' }}>
-            <IconMinus size={14} /> Novo Gasto
+          <Link to="/adicionar-saida" className="btn-primary btn-action-saida" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)' }}>
+            <IconMinus size={14} /> <span>Novo Gasto</span>
           </Link>
 
           {/* Toggle de Privacidade */}
           <button 
             onClick={toggleHideValues}
-            className="btn-secondary"
-            style={{ padding: '0.4rem 0.7rem', fontSize: '0.825rem' }}
+            className="btn-secondary btn-action-toggle"
             title={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
             aria-label="Alternar Privacidade"
           >
-            {hideValues ? <><IconEye size={15} /> Mostrar</> : <><IconEyeOff size={15} /> Ocultar</>}
+            {hideValues ? <><IconEye size={15} /> <span className="btn-label-hide">Mostrar</span></> : <><IconEyeOff size={15} /> <span className="btn-label-hide">Ocultar</span></>}
           </button>
 
           {/* Menu Exportar */}
           <div style={{ position: 'relative' }}>
             <button 
               onClick={() => setShowExportMenu(!showExportMenu)}
-              className="btn-secondary"
-              style={{ padding: '0.4rem 0.6rem' }}
+              className="btn-secondary btn-action-menu"
               title="Exportar Relatório"
               aria-label="Opções de Exportação"
             >
@@ -854,7 +844,7 @@ export default function Dashboard() {
           {/* Card: Destaques Financeiros (se existirem) */}
           {(maiorGasto || maiorEntrada) && (
             <div className="modern-card" style={{ flexShrink: 0 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+              <div className="dashboard-highlights-grid">
                 {maiorGasto && (
                   <div style={{
                     padding: '0.5rem 0.75rem',
@@ -987,7 +977,7 @@ export default function Dashboard() {
       </div>
 
       {/* --- SUB-GRID DUPLA LADO A LADO: ORÇAMENTO & COFRINHO (PREENCHE A LARGURA DA PÁGINA, 50% CADA) --- */}
-      <div className="print-budget-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', flexShrink: 0, marginTop: '0.85rem' }}>
+      <div className="dashboard-budget-grid print-budget-grid">
         {/* Card: Termômetro do Orçamento */}
         <div className="modern-card" style={{ padding: '0.75rem 1rem' }}>
           <div className="budget-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', gap: '0.35rem' }}>

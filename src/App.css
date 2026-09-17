@@ -234,6 +234,7 @@ html, body {
     gap: 1.25rem;
   }
 
+  .dashboard-budget-grid,
   .print-budget-grid {
     display: flex;
     flex-direction: column;
@@ -241,6 +242,153 @@ html, body {
     margin-top: 1.25rem;
     width: 100%;
     box-sizing: border-box;
+  }
+}
+
+/* --- REGRAS ESPECÍFICAS PARA TABLETS E CELULARES (<= 768px) --- */
+@media (max-width: 768px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .kpi-card {
+    padding: 0.65rem 0.85rem;
+  }
+
+  .dashboard-budget-grid,
+  .print-budget-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+    margin-top: 0.85rem !important;
+  }
+}
+
+/* --- REGRAS EXCLUSIVAS PARA CELULARES (<= 640px) --- */
+@media (max-width: 640px) {
+  .main-content {
+    padding: 0.65rem 0.65rem 2rem;
+  }
+
+  /* 1. Barra superior: Mês em destaque e botões de ação em uma linha harmônica */
+  .dashboard-top-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .dashboard-month-nav {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .dashboard-month-nav .calendar-nav-box {
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .dashboard-actions-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+  .btn-action-entrada,
+  .btn-action-saida {
+    justify-content: center;
+    padding: 0.45rem 0.5rem !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap;
+  }
+
+  .btn-action-toggle {
+    padding: 0.45rem 0.55rem !important;
+    justify-content: center;
+  }
+
+  .btn-action-menu {
+    padding: 0.45rem 0.65rem !important;
+  }
+
+  .btn-label-hide {
+    display: none;
+  }
+
+  /* 2. Grid de 4 KPIs em 2x2 com espaço ideal para valores e badges sem cortes */
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.55rem !important;
+    margin-bottom: 0.65rem !important;
+  }
+
+  .kpi-card {
+    padding: 0.6rem 0.7rem;
+  }
+
+  .kpi-title {
+    font-size: 0.72rem;
+  }
+
+  .kpi-value {
+    font-size: 1.15rem;
+  }
+
+  .kpi-footer {
+    font-size: 0.68rem;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+  }
+
+  /* 3. Distribuição Mensal: Gráfico rosca centralizado em cima, categorias embaixo ocupando largura total */
+  .print-donut-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    overflow: visible !important;
+    padding: 0.4rem 0 !important;
+  }
+
+  .chart-doughnut-wrapper {
+    width: 185px !important;
+    height: 185px !important;
+    max-height: 185px !important;
+    margin: 0 auto !important;
+  }
+
+  .print-donut-row .custom-scroll {
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-right: 0 !important;
+  }
+
+  /* 4. Destaques Financeiros em coluna única em celulares finos */
+  .dashboard-highlights-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  /* 5. Orçamento & Cofrinhos em coluna única (100% de largura cada, sem colisão de textos) */
+  .dashboard-budget-grid,
+  .print-budget-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    margin-top: 0.75rem !important;
+    width: 100% !important;
+  }
+
+  .budget-header-row {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .budget-title,
+  .budget-values {
+    font-size: 0.78rem;
   }
 }
 
@@ -447,6 +595,74 @@ select.input-field {
   background-color: var(--bg-subtle);
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
+}
+
+/* --- Barra Superior de Controle (Dashboard) --- */
+.dashboard-top-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.65rem;
+  flex-shrink: 0;
+}
+
+.dashboard-month-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dashboard-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-action-entrada,
+.btn-action-saida {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.825rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  text-decoration: none;
+}
+
+.btn-action-toggle {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.825rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.btn-action-menu {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sub-grid de Destaques (Maior Gasto e Maior Entrada) */
+.dashboard-highlights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+/* Sub-grid Dupla: Orçamento & Cofrinho (Desktop) */
+.dashboard-budget-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 0.85rem;
+  width: 100%;
 }
 
 /* --- Grid Compacto de KPIs (Dashboard) --- */
@@ -962,7 +1178,8 @@ select.input-field {
   }
 
   /* 10.1 Sub-grid de Orçamento & Cofrinho: preenche 100% da largura da página (50% cada) */
-  .print-budget-grid {
+  .print-budget-grid,
+  .dashboard-budget-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 0.75rem !important;

@@ -294,6 +294,13 @@ export default function NavBar({ theme, toggleTheme }) {
               display: flex;
             }
           }
+
+          @media (max-width: 768px) {
+            .navbar-inner {
+              padding: 0 1rem;
+              gap: 0.75rem;
+            }
+          }
         `}
       </style>
 
