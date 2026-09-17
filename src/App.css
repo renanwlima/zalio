@@ -723,13 +723,14 @@ select.input-field {
 }
 
 /* --- ESTILOS DE IMPRESSÃO / PDF PROFISSIONAL --- */
-.print-only {
+.print-only,
+.print-report-header {
   display: none !important;
 }
 
 @page {
   size: A4 portrait;
-  margin: 12mm 12mm 14mm 12mm;
+  margin: 10mm 12mm 12mm 12mm;
 }
 
 @media print {
@@ -763,8 +764,17 @@ select.input-field {
   }
 
   /* 3. Exibir elementos exclusivos para impressão */
-  .print-only {
+  .print-only,
+  .print-report-header {
     display: block !important;
+  }
+
+  /* Cabeçalho institucional exclusivo da Página 1 */
+  .print-report-header {
+    width: 100% !important;
+    margin-bottom: 0.85rem !important;
+    border-bottom: 2px solid #0f172a !important;
+    padding-bottom: 0.5rem !important;
   }
 
   /* Quebra de página deliberada para relatórios organizados em páginas distintas */
@@ -772,16 +782,21 @@ select.input-field {
     break-before: page !important;
     page-break-before: always !important;
     margin-top: 0 !important;
-    padding-top: 0.25rem !important;
+    padding-top: 8mm !important;
+    box-sizing: border-box !important;
   }
 
   .print-page-footer {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+    margin-top: 0.85rem !important;
+    padding-top: 0.5rem !important;
+    border-top: 1px solid #cbd5e1 !important;
   }
 
-  /* 4. Reset total de alturas para que o conteúdo flua sem cortes de página */
-  html, body, #root, .app-layout, .main-content, .container-fit {
+  /* 4. Reset total de alturas e display limpo para que o conteúdo flua sem cortes ou bugs de flexbox */
+  html, body, #root, .app-layout, .main-content {
+    display: block !important;
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;
@@ -797,6 +812,20 @@ select.input-field {
     max-width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  /* 4.1 Container do Relatório: Margens de respiro garantidas em todos os lados (mesmo se o navegador estiver com 'Margens: Nenhuma') */
+  .container-fit {
+    display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8mm 12mm 10mm 12mm !important;
+    margin: 0 auto !important;
   }
 
   /* 5. Forçar impressão exata de cores */
@@ -829,24 +858,24 @@ select.input-field {
     color: #e11d48 !important;
   }
 
-  /* 8. Distribuição das colunas no papel A4 */
+  /* 8. Distribuição das colunas no papel A4 com respiro equilibrado */
   .dashboard-kpi-grid {
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
     gap: 0.65rem !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0.75rem !important;
   }
 
   .dashboard-main-grid-fixed {
     display: grid !important;
-    grid-template-columns: 1.2fr 1fr !important;
-    gap: 1rem !important;
+    grid-template-columns: 1.25fr 1fr !important;
+    gap: 0.75rem !important;
     height: auto !important;
     min-height: auto !important;
   }
 
   .dashboard-section-fixed {
-    gap: 1rem !important;
+    gap: 0.75rem !important;
     height: auto !important;
     min-height: auto !important;
   }

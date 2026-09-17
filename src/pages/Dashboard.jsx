@@ -313,19 +313,22 @@ export default function Dashboard() {
   return (
     <div className="container-fit">
       {/* Cabeçalho do Relatório exclusivo para Impressão / PDF */}
-      <div className="print-only" style={{ marginBottom: '1.25rem', borderBottom: '2px solid #0f172a', paddingBottom: '0.75rem' }}>
+      <div className="print-report-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
-              Zalio • Relatório Financeiro
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.15rem' }}>
+              Zalio • Relatório Executivo
+            </div>
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
+              Visão Geral Financeira
             </h1>
-            <p style={{ fontSize: '0.95rem', margin: '0.25rem 0 0 0', color: '#475569', textTransform: 'capitalize' }}>
+            <p style={{ fontSize: '0.82rem', margin: '0.15rem 0 0 0', color: '#475569', textTransform: 'capitalize' }}>
               Mês de Referência: <strong>{format(currentDate, 'MMMM yyyy', { locale: ptBR })}</strong>
             </p>
           </div>
-          <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#64748b', lineHeight: 1.5 }}>
+          <div style={{ textAlign: 'right', fontSize: '0.72rem', color: '#64748b', lineHeight: 1.5 }}>
             <div><strong>Emissão:</strong> {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
-            <div><strong>Balanço:</strong> {saldoLiquido >= 0 ? 'Superávit' : 'Déficit'} ({formatCurrency(saldoLiquido)})</div>
+            <div><strong>Balanço:</strong> <span style={{ color: saldoLiquido >= 0 ? '#059669' : '#e11d48', fontWeight: 700 }}>{saldoLiquido >= 0 ? 'Superávit' : 'Déficit'} ({formatCurrency(saldoLiquido)})</span></div>
           </div>
         </div>
       </div>
