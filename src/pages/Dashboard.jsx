@@ -655,7 +655,7 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              <div style={{
+              <div className="print-donut-row" style={{
                 flex: 1,
                 minHeight: 0,
                 display: 'flex',

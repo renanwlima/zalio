@@ -868,48 +868,60 @@ select.input-field {
 
   .dashboard-main-grid-fixed {
     display: grid !important;
-    grid-template-columns: 1.25fr 1fr !important;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) !important;
     gap: 0.75rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     height: auto !important;
     min-height: auto !important;
   }
 
   .dashboard-section-fixed {
     gap: 0.75rem !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
     height: auto !important;
     min-height: auto !important;
   }
 
-  /* 9. Gráfico perfeitamente circular (1:1) via SVG vetorial no PDF */
+  /* 9. Gráfico perfeitamente circular e proporcional no PDF (evita empurrar a coluna da direita) */
   .chart-doughnut-wrapper {
     display: none !important;
+  }
+
+  .print-donut-row {
+    gap: 0.75rem !important;
   }
 
   .chart-doughnut-svg-print {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 170px !important;
-    height: 170px !important;
-    min-width: 170px !important;
-    min-height: 170px !important;
+    width: 140px !important;
+    height: 140px !important;
+    min-width: 140px !important;
+    min-height: 140px !important;
     margin: 0 auto !important;
     flex-shrink: 0 !important;
   }
 
   .chart-doughnut-svg-print svg {
-    width: 165px !important;
-    height: 165px !important;
+    width: 135px !important;
+    height: 135px !important;
     display: block !important;
     margin: 0 auto !important;
   }
 
-  /* 10. Cards internos limpos e legíveis */
+  /* 10. Cards internos limpos, legíveis e compactos */
   .print-category-card,
   .print-fixed-item {
     background: #f8fafc !important;
     border: 1px solid #e2e8f0 !important;
     color: #0f172a !important;
+    padding: 0.4rem 0.65rem !important;
+    box-sizing: border-box !important;
   }
 
   /* 11. Ocultar itens redundantes na folha */
