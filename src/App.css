@@ -868,7 +868,7 @@ select.input-field {
 
   .dashboard-main-grid-fixed {
     display: grid !important;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) !important;
     gap: 0.75rem !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -886,42 +886,89 @@ select.input-field {
     min-height: auto !important;
   }
 
-  /* 9. Gráfico perfeitamente circular e proporcional no PDF (evita empurrar a coluna da direita) */
+  /* 9. Gráfico perfeitamente circular e proporcional no PDF */
   .chart-doughnut-wrapper {
     display: none !important;
   }
 
   .print-donut-row {
-    gap: 0.75rem !important;
+    gap: 0.5rem !important;
+    overflow: visible !important;
   }
 
   .chart-doughnut-svg-print {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 140px !important;
-    height: 140px !important;
-    min-width: 140px !important;
-    min-height: 140px !important;
-    margin: 0 auto !important;
+    width: 120px !important;
+    height: 120px !important;
+    min-width: 120px !important;
+    min-height: 120px !important;
+    margin: 0 !important;
     flex-shrink: 0 !important;
   }
 
   .chart-doughnut-svg-print svg {
-    width: 135px !important;
-    height: 135px !important;
+    width: 115px !important;
+    height: 115px !important;
     display: block !important;
     margin: 0 auto !important;
   }
 
-  /* 10. Cards internos limpos, legíveis e compactos */
+  /* 10. Cards internos limpos, legíveis e sem cortes de texto */
   .print-category-card,
   .print-fixed-item {
     background: #f8fafc !important;
     border: 1px solid #e2e8f0 !important;
     color: #0f172a !important;
-    padding: 0.4rem 0.65rem !important;
+    padding: 0.35rem 0.55rem !important;
     box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+
+  .print-cat-name {
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+  }
+
+  .print-cat-badge {
+    font-size: 0.64rem !important;
+    padding: 0.08rem 0.3rem !important;
+  }
+
+  .print-cat-val {
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* 10.1 Card de Orçamento: cabeçalho alinhado e sem colisão */
+  .print-budget-grid {
+    gap: 0.65rem !important;
+  }
+
+  .print-budget-grid .modern-card {
+    padding: 0.55rem 0.75rem !important;
+  }
+
+  .budget-header-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+    margin-bottom: 0.3rem !important;
+  }
+
+  .budget-title {
+    font-size: 0.76rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .budget-values {
+    font-size: 0.68rem !important;
+    white-space: nowrap !important;
+    text-align: right !important;
+    flex-shrink: 0 !important;
   }
 
   /* 11. Ocultar itens redundantes na folha */

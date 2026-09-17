@@ -767,15 +767,15 @@ export default function Dashboard() {
                         border: '1px solid var(--border-color)'
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <IconCategory name={cat} size={15} color={color} />
-                            <span style={{ fontWeight: 600, fontSize: '0.84rem', color: 'var(--text-main)' }}>{cat}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
+                            <IconCategory name={cat} size={14} color={color} />
+                            <span className="print-cat-name" style={{ fontWeight: 600, fontSize: '0.84rem', color: 'var(--text-main)' }}>{cat}</span>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            <span className="badge badge-neutral" style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', fontWeight: 600 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexShrink: 0 }}>
+                            <span className="badge badge-neutral print-cat-badge" style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem', fontWeight: 600 }}>
                               {perc}%
                             </span>
-                            <strong className="currency-val" style={{ color: 'var(--text-main)', fontSize: '0.88rem' }}>
+                            <strong className="currency-val print-cat-val" style={{ color: 'var(--text-main)', fontSize: '0.88rem', whiteSpace: 'nowrap' }}>
                               {formatCurrency(val)}
                             </strong>
                           </div>
@@ -792,15 +792,15 @@ export default function Dashboard() {
           </div>
 
           {/* Sub-grid Dupla Lado a Lado: Orçamento & Cofrinho */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', flexShrink: 0 }}>
+          <div className="print-budget-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', flexShrink: 0 }}>
             {/* Card: Termômetro do Orçamento */}
             <div className="modern-card" style={{ padding: '0.75rem 1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <span style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <div className="budget-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', gap: '0.35rem' }}>
+                <span className="budget-title" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
                   <IconCreditCard size={14} color="var(--primary-color)" /> Orçamento
                 </span>
-                <span className="currency-val" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  {formatCurrency(totalGasto)} / {formatCurrency(totalEntradas)}
+                <span className="budget-values currency-val" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                  {formatCurrency(totalGasto)} <span style={{ opacity: 0.7 }}>/ {formatCurrency(totalEntradas)}</span>
                 </span>
               </div>
 
