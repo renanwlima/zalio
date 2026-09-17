@@ -4,13 +4,13 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { IconLock } from '../components/Icons';
 
 export default function Login(){
   const { loginWithRedirect, isAuthenticated, isLoading, handleRedirectCallback } = useAuth0(); 
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Efeito para garantir que a tela de login respeite o tema (escuro/claro) do usuário
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const theme = savedTheme || (prefersDark ? 'dark' : 'light');
@@ -18,30 +18,21 @@ export default function Login(){
   }, []);
 
   useEffect(() => {
-    // Se o usuário chegar na página de login mas já estiver autenticado,
-    // o redirecionamos para a página inicial.
-    // O `isLoading` garante que só fazemos isso após o Auth0 terminar a verificação.
     if (!isLoading && isAuthenticated) {
       navigate('/');
     }
   }, [isLoading, isAuthenticated, navigate]);
 
-  // Escuta o retorno do Auth0 no aplicativo (Deep Link) via Capacitor
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       const listener = CapApp.addListener('appUrlOpen', async ({ url }) => {
-        // Se a URL for de retorno do Logout (não tem o parâmetro "state=" de login)
         if (url.includes('com.rwl.zalio/callback') && !url.includes('state=')) {
-          // Apenas fecha o navegador nativo silenciosamente
           await Browser.close().catch(() => {});
           return;
         }
-        // Verifica se a URL de retorno tem os parâmetros de sucesso ou erro do Auth0
         if (url.includes('state=') && (url.includes('error=') || url.includes('code='))) {
-          // Fecha o navegador nativo (Custom Tab) que estava sobreposto
           await Browser.close().catch(() => {});
           try {
-            // Passa a URL para o Auth0 processar o login e gerar o token da sessão
             await handleRedirectCallback(url);
           } catch (error) {
             console.error('Erro no Auth0:', error);
@@ -53,17 +44,14 @@ export default function Login(){
         listener.then(l => l.remove());
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleRedirectCallback]);
 
   const handleLogin = async () => {
     await loginWithRedirect({
       async openUrl(url) {
-        // Se for celular, usa o navegador nativo interno (melhor UX e evita abrir o Chrome)
         if (Capacitor.isNativePlatform()) {
           await Browser.open({ url });
         } else {
-          // Se for PC, redireciona a página normalmente
           window.location.assign(url);
         }
       }
@@ -71,21 +59,46 @@ export default function Login(){
   };
 
   return (
-    <div className="app-layout">
-      <div className="main-content" style={{ justifyContent: 'center', padding: '1rem' }}>
-        <main className="container" aria-labelledby="ttlLogin" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-          <h1 className="nav-logo" style={{ fontSize: '2rem', marginBottom: '0.5rem', display: 'inline-block' }}>Zalio</h1>
-          <h2 id="ttlLogin" style={{ margin: '1rem 0' }}>Bem-vindo</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem' }}>
-            Faça login ou crie sua conta de forma segura.
-          </p>
-          <div className="grid">
-            <button onClick={handleLogin} style={{ padding: '1rem', fontSize: '1.1rem' }}>
-              Entrar ou Registrar
-            </button>
-          </div>
-        </main>
-      </div>
+    <div className="app-layout" style={{ justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'radial-gradient(ellipse at top, var(--bg-subtle) 0%, var(--bg-color) 70%)' }}>
+      <main className="container-focused" aria-labelledby="ttlLogin" style={{ textAlign: 'center', maxWidth: '420px', padding: '2.5rem 2rem' }}>
+        <div style={{
+          width: '52px',
+          height: '52px',
+          borderRadius: '14px',
+          background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 1.25rem',
+          color: '#ffffff',
+          fontWeight: 800,
+          fontSize: '1.6rem',
+          boxShadow: '0 8px 20px rgba(37, 99, 235, 0.35)'
+        }}>
+          Z
+        </div>
+
+        <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>
+          Zalio Financeiro
+        </h1>
+        
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.75rem', fontSize: '0.9rem' }}>
+          Gestão e controle financeiro pessoal moderno e inteligente.
+        </p>
+
+        <button 
+          onClick={handleLogin} 
+          className="btn-primary"
+          style={{ width: '100%', padding: '0.85rem', fontSize: '0.95rem' }}
+        >
+          Entrar ou Criar Conta
+        </button>
+
+        <div style={{ marginTop: '1.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+          <IconLock size={14} color="var(--text-muted)" />
+          <span>Autenticação segura via Auth0</span>
+        </div>
+      </main>
     </div>
   );
 }

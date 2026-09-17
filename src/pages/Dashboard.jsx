@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { 
   Chart as ChartJS, 
@@ -10,33 +10,72 @@ import {
 } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import { CATEGORIAS, CATEGORY_COLORS } from '../services/storage';
-import { startOfMonth, endOfMonth, format, addMonths, subMonths } from 'date-fns';
+import { startOfMonth, endOfMonth, format, addMonths, subMonths, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useData } from '../contexts/DataContext';
+import { 
+  IconTrendUp, 
+  IconTrendDown, 
+  IconWallet, 
+  IconCreditCard, 
+  IconPiggyBank, 
+  IconCalendar, 
+  IconEye, 
+  IconEyeOff, 
+  IconPlus, 
+  IconMinus,
+  IconArrowDownLeft,
+  IconArrowUpRight,
+  IconCategory,
+  IconReceipt
+} from '../components/Icons';
 
-// Registrando componentes do Chart.js
 ChartJS.register(Tooltip, Legend, ArcElement, Title, DoughnutController);
 
 export default function Dashboard() {
   const { theme } = useOutletContext();
-  
-  // Puxando os dados globais da memória (cache)
-  const { transacoes: todasTransacoes, despesasFixas, cofrinhos, isLoadingGlobal } = useData();
+  const { transacoes: todasTransacoes, despesasFixas, cofrinhos, dadosFinanceiros, isLoadingGlobal } = useData();
 
-  // Estado local para forçar a re-animação do gráfico toda vez que a aba é aberta
   const [isAnimating, setIsAnimating] = useState(true);
   const [dataType, setDataType] = useState('saidas');
-  
-  // Novos estados para Filtro Temporal e Privacidade
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => {
+    const saved = localStorage.getItem('selectedMonth');
+    if (saved) {
+      const parsed = new Date(saved);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return new Date();
+  });
   const [hideValues, setHideValues] = useState(() => localStorage.getItem('hideValues') === 'true');
   const [showExportMenu, setShowExportMenu] = useState(false);
 
-  // Estados para animar as barras de progresso
   const [budgetAnimPerc, setBudgetAnimPerc] = useState(0);
   const [cofrinhoAnimPerc, setCofrinhoAnimPerc] = useState(0);
 
-  // Escuta mudanças de privacidade feitas por outras abas
+  const updateCurrentDate = useCallback((newDate) => {
+    setCurrentDate(newDate);
+    localStorage.setItem('selectedMonth', newDate.toISOString());
+    window.dispatchEvent(new Event('monthChanged'));
+  }, []);
+
+  useEffect(() => {
+    const handleMonthSync = () => {
+      const saved = localStorage.getItem('selectedMonth');
+      if (saved) {
+        const parsed = new Date(saved);
+        if (!isNaN(parsed.getTime())) setCurrentDate(parsed);
+      }
+    };
+    window.addEventListener('monthChanged', handleMonthSync);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'selectedMonth') handleMonthSync();
+    });
+    return () => {
+      window.removeEventListener('monthChanged', handleMonthSync);
+    };
+  }, []);
+
+  // Sincronização da privacidade entre abas/telas
   useEffect(() => {
     const handleSync = () => setHideValues(localStorage.getItem('hideValues') === 'true');
     window.addEventListener('hideValuesChanged', handleSync);
@@ -54,7 +93,7 @@ export default function Dashboard() {
     window.dispatchEvent(new Event('hideValuesChanged'));
   };
 
-  // Filtra as transações globais apenas para o mês selecionado
+  // Filtragem temporal das transações para o mês selecionado
   const startStr = format(startOfMonth(currentDate), 'yyyy-MM-dd');
   const endStr = format(endOfMonth(currentDate), 'yyyy-MM-dd');
   
@@ -63,25 +102,40 @@ export default function Dashboard() {
     return tDate >= startStr && tDate <= endStr;
   });
 
-  const transacoes = currentMonthTransactions.filter(t => t.tipo === 'saida');
-  const entradas = currentMonthTransactions.filter(t => t.tipo === 'entrada');
+  const transacoesSaidas = currentMonthTransactions.filter(t => t.tipo === 'saida');
+  const transacoesEntradas = currentMonthTransactions.filter(t => t.tipo === 'entrada');
 
-  // Total Cofrinho
-  const cofrinho = {
-    saldo: cofrinhos.reduce((acc, curr) => acc + Number(curr.saldo), 0),
-    meta: cofrinhos.reduce((acc, curr) => acc + Number(curr.meta), 0)
+  // Cálculos financeiros
+  const totalFixas = despesasFixas.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+  const totalVariaveis = transacoesSaidas.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+  const totalGasto = totalVariaveis + totalFixas;
+  const totalEntradas = transacoesEntradas.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+  const saldoLiquido = totalEntradas - totalGasto;
+
+  // Taxa de economia (% guardada ou que sobrou)
+  const taxaEconomia = totalEntradas > 0 
+    ? Math.max(0, Math.round((saldoLiquido / totalEntradas) * 100)) 
+    : 0;
+
+  // Cofrinhos
+  const cofrinhoTotal = {
+    saldo: cofrinhos.reduce((acc, curr) => acc + Number(curr.saldo || 0), 0),
+    meta: cofrinhos.reduce((acc, curr) => acc + Number(curr.meta || 0), 0)
   };
 
-  const handlePrevMonth = useCallback(() => setCurrentDate(subMonths(currentDate, 1)), [currentDate]);
-  const handleNextMonth = useCallback(() => setCurrentDate(addMonths(currentDate, 1)), [currentDate]);
+  const isCurrentMonth = isSameMonth(currentDate, new Date());
+  const handlePrevMonth = useCallback(() => updateCurrentDate(subMonths(currentDate, 1)), [currentDate, updateCurrentDate]);
+  const handleNextMonth = useCallback(() => updateCurrentDate(addMonths(currentDate, 1)), [currentDate, updateCurrentDate]);
+  const handleCurrentMonth = useCallback(() => updateCurrentDate(new Date()), [updateCurrentDate]);
 
   const formatCurrency = (value) => {
-    if (hideValues) return 'R$ *****';
-    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    if (hideValues) return 'R$ ••••••';
+    return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
- const handleExportCSV = useCallback(() => {
-    const allData = [...entradas, ...transacoes].sort((a, b) => new Date(a.date) - new Date(b.date));
+  // Exportação CSV
+  const handleExportCSV = useCallback(() => {
+    const allData = [...transacoesEntradas, ...transacoesSaidas].sort((a, b) => new Date(a.date) - new Date(b.date));
     if (allData.length === 0) {
       alert('Nenhum dado para exportar neste mês.');
       return;
@@ -89,24 +143,18 @@ export default function Dashboard() {
 
     const escapeCsvCell = (cell) => {
       const str = String(cell === null || cell === undefined ? '' : cell);
-      if (str.search(/("|,|\n)/g) >= 0) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
+      if (str.search(/("|,|\n)/g) >= 0) return `"${str.replace(/"/g, '""')}"`;
       return str;
     };
 
     const headers = ['Data', 'Tipo', 'Descrição', 'Categoria', 'Valor'].join(',');
-
-    const rows = allData.map(t => {
-      const rowData = [
-        t.date,
-        t.tipo,
-        t.descricao,
-        t.categoria || '-', // Usa '-' se não houver categoria (caso das entradas)
-        t.valor
-      ];
-      return rowData.map(escapeCsvCell).join(',');
-    });
+    const rows = allData.map(t => [
+      t.date,
+      t.tipo,
+      t.descricao,
+      t.categoria || 'Entrada',
+      t.valor
+    ].map(escapeCsvCell).join(','));
 
     const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join('\n');
     const encodedUri = encodeURI(csvContent);
@@ -116,70 +164,107 @@ export default function Dashboard() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [entradas, transacoes, currentDate]);
+  }, [transacoesEntradas, transacoesSaidas, currentDate]);
 
-  // Cálculo do total
-  const totalFixas = despesasFixas.reduce((acc, curr) => acc + Number(curr.valor), 0);
-  const totalGasto = transacoes.reduce((acc, curr) => acc + Number(curr.valor), 0) + totalFixas;
+  // Impressão / Exportação PDF limpa e sem elementos de tela
+  const handlePrintReport = useCallback(() => {
+    setShowExportMenu(false);
+    const wasHidden = hideValues;
+    if (wasHidden) {
+      setHideValues(false);
+    }
+    setTimeout(() => {
+      window.print();
+      if (wasHidden) {
+        setHideValues(true);
+      }
+    }, 150);
+  }, [hideValues]);
 
-  // Total de Entradas dinâmico
-  const totalEntradas = entradas.reduce((acc, curr) => acc + Number(curr.valor), 0);
-
-  // Efeito para re-animar o gráfico ao montar o componente ou mudar filtros
+  // Animações dos gráficos e barras
   useEffect(() => {
     setIsAnimating(true);
-    const timer = setTimeout(() => setIsAnimating(false), 50); // Pequeno delay para o React renderizar com dados zerados primeiro
+    const timer = setTimeout(() => setIsAnimating(false), 50);
     return () => clearTimeout(timer);
-  }, [currentDate, dataType]); // Re-anima ao trocar de mês ou tipo de dado (saída/entrada)
+  }, [currentDate, dataType]);
 
-  // Efeito para animar as barras de progresso ao carregar ou mudar os dados
   useEffect(() => {
-    // A animação acontece ao setar para 0 e depois para o valor real com um delay
     setBudgetAnimPerc(0);
     setCofrinhoAnimPerc(0);
-
     const timer = setTimeout(() => {
-      const budgetPercValue = totalEntradas > 0 ? Math.min((totalGasto / totalEntradas) * 100, 100) : (totalGasto > 0 ? 100 : 0);
-      const cofrinhoPercValue = cofrinho.meta > 0 ? Math.min((cofrinho.saldo / cofrinho.meta) * 100, 100) : 0;
-      setBudgetAnimPerc(budgetPercValue);
-      setCofrinhoAnimPerc(cofrinhoPercValue);
-    }, 150); // Um delay um pouco maior para dar tempo da UI "piscar" para 0
+      const budgetPerc = totalEntradas > 0 
+        ? Math.min((totalGasto / totalEntradas) * 100, 100) 
+        : (totalGasto > 0 ? 100 : 0);
+      const cofrinhoPerc = cofrinhoTotal.meta > 0 
+        ? Math.min((cofrinhoTotal.saldo / cofrinhoTotal.meta) * 100, 100) 
+        : 0;
+      setBudgetAnimPerc(budgetPerc);
+      setCofrinhoAnimPerc(cofrinhoPerc);
+    }, 120);
     return () => clearTimeout(timer);
-  }, [totalGasto, totalEntradas, cofrinho.saldo, cofrinho.meta]);
+  }, [totalGasto, totalEntradas, cofrinhoTotal.saldo, cofrinhoTotal.meta]);
 
-  // Preparação de dados para o gráfico
+  // Dados do gráfico Doughnut
+  const isSaidas = dataType === 'saidas';
   const categoriasGrafico = [...CATEGORIAS, 'Fixas'];
   const dadosPorCategoria = categoriasGrafico.map(cat => {
     if (cat === 'Fixas') return totalFixas;
-    return transacoes
+    return transacoesSaidas
       .filter(t => t.categoria === cat)
-      .reduce((acc, curr) => acc + Number(curr.valor), 0);
+      .reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
   });
-  const coresSaidas = categoriasGrafico.map(cat => CATEGORY_COLORS[cat] || '#f97316'); // Laranja para destacar as fixas
+  const coresSaidas = categoriasGrafico.map(cat => CATEGORY_COLORS[cat] || '#f97316');
 
-  const isSaidas = dataType === 'saidas';
-  
-  // Lógica de agrupamento para Entradas baseada na descrição (já que não possuem categorias específicas)
-  const descricoesEntradas = [...new Set(entradas.map(e => e.descricao))];
+  const descricoesEntradas = [...new Set(transacoesEntradas.map(e => e.descricao))];
   const labelsEntradas = descricoesEntradas.length > 0 ? descricoesEntradas : ['Entradas'];
   const dadosEntradas = descricoesEntradas.length > 0 
-    ? descricoesEntradas.map(desc => entradas.filter(e => e.descricao === desc).reduce((acc, curr) => acc + Number(curr.valor), 0))
+    ? descricoesEntradas.map(desc => transacoesEntradas.filter(e => e.descricao === desc).reduce((acc, curr) => acc + Number(curr.valor || 0), 0))
     : [0];
-  const colorsEntradas = labelsEntradas.map((_, i) => ['#10b981', '#3b82f6', '#06b6d4', '#14b8a6', '#0ea5e9', '#34d399'][i % 6]); // Paleta de verdes/azuis
+  const colorsEntradas = labelsEntradas.map((_, i) => ['#10b981', '#3b82f6', '#06b6d4', '#14b8a6', '#0ea5e9', '#34d399'][i % 6]);
 
   const currentLabels = isSaidas ? categoriasGrafico : labelsEntradas;
   const rawData = isSaidas ? dadosPorCategoria : dadosEntradas;
-  // O truque infalível: Se estiver carregando, passa 0 para tudo. Assim ele é obrigado a subir do chão!
   const currentData = isLoadingGlobal || isAnimating ? currentLabels.map(() => 0) : rawData;
   const currentColors = isSaidas ? coresSaidas : colorsEntradas;
 
-  // Cofrinho
-  const valorCofrinho = cofrinho.saldo;
-  const metaCofrinho = cofrinho.meta;
+  const totalParaPorcentagem = rawData.reduce((a, b) => a + b, 0);
 
-  // Descobre quais foram as maiores transações (gasto e entrada) do mês para exibir como destaques
-  const maiorGasto = [...transacoes].sort((a, b) => Number(b.valor) - Number(a.valor))[0];
-  const maiorEntrada = [...entradas].sort((a, b) => Number(b.valor) - Number(a.valor))[0];
+  // Destaques e rankings
+  const maiorGasto = [...transacoesSaidas].sort((a, b) => Number(b.valor) - Number(a.valor))[0];
+  const maiorEntrada = [...transacoesEntradas].sort((a, b) => Number(b.valor) - Number(a.valor))[0];
+  const ultimasTransacoes = [...currentMonthTransactions]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 4);
+
+  // Lista completa ordenada para o relatório de impressão/PDF
+  const todasTransacoesOrdenadas = useMemo(() => {
+    return [...currentMonthTransactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [currentMonthTransactions]);
+
+  // Fatias vetoriais perfeitas do gráfico de rosca para o PDF (100% circular, nunca deforma)
+  const svgDonutSlices = useMemo(() => {
+    const totalVal = rawData.reduce((acc, curr) => acc + (Number(curr) || 0), 0);
+    const circumference = 2 * Math.PI * 66; // ~414.69
+    let accumulated = 0;
+    return currentLabels.map((cat, idx) => {
+      const val = Number(rawData[idx]) || 0;
+      if (val <= 0 || totalVal <= 0) return null;
+      const ratio = val / totalVal;
+      const strokeDash = ratio * circumference;
+      const offset = accumulated;
+      accumulated += strokeDash;
+      return {
+        cat,
+        color: currentColors[idx] || '#64748b',
+        dashArray: `${strokeDash.toFixed(2)} ${(circumference - strokeDash).toFixed(2)}`,
+        dashOffset: -offset.toFixed(2)
+      };
+    }).filter(Boolean);
+  }, [rawData, currentLabels, currentColors]);
+
+  // Próximas contas fixas do mês
+  const hojeDia = new Date().getDate();
+  const contasOrdenadas = [...despesasFixas].sort((a, b) => Number(a.vencimento) - Number(b.vencimento));
 
   const dataGraph = {
     labels: currentLabels,
@@ -188,36 +273,37 @@ export default function Dashboard() {
         label: isSaidas ? 'Saídas R$' : 'Entradas R$',
         data: currentData,
         backgroundColor: currentColors,
-        borderWidth: 2, 
-        borderColor: theme === 'dark' ? '#1f2937' : '#ffffff', // Adiciona uma separação elegante entre as fatias
-        borderRadius: 6, // Deixa as pontas das fatias da rosquinha suavemente arredondadas
-        hoverOffset: 12, // Efeito de "pular" ajustado para o novo tamanho
-        cutout: '70%', // Transforma a pizza em rosquinha (define o tamanho do furo no meio)
+        borderWidth: 2,
+        borderColor: theme === 'dark' ? '#141c2e' : '#ffffff',
+        borderRadius: 4,
+        hoverOffset: 6,
+        cutout: '68%',
       },
     ],
   };
 
-  const options = {
+  const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     animation: {
-      duration: 800, // Deixamos um pouco mais rápido para o efeito ficar mais dinâmico
+      duration: 500,
       easing: 'easeOutQuart'
     },
-    layout: {
-      padding: 15 // Espaço ajustado para a rosquinha não cortar ao passar o mouse
-    },
     plugins: {
-      legend: {
-        display: false // Ocultamos a legenda padrão para usar a nossa customizada
-      },
+      legend: { display: false },
       tooltip: {
+        backgroundColor: theme === 'dark' ? '#1a243b' : '#0f172a',
+        padding: 8,
+        cornerRadius: 6,
+        titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' },
+        bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
         callbacks: {
           label: function(context) {
             const label = context.label || '';
             const val = context.parsed.y !== undefined ? context.parsed.y : context.parsed;
-            const formattedVal = hideValues ? 'R$ *****' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-            return `${label}: ${formattedVal}`;
+            const perc = totalParaPorcentagem > 0 ? Math.round((val / totalParaPorcentagem) * 100) : 0;
+            const formatted = hideValues ? 'R$ ••••••' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+            return ` ${label}: ${formatted} (${perc}%)`;
           }
         }
       }
@@ -225,216 +311,898 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="container" style={{ maxWidth: '1250px', padding: '1rem 2rem 2rem' }}>
-      <div className="no-print dashboard-header">
-        
-        {/* Esquerda: Calendário */}
-        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-          <div className="calendar-nav-container" style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-card)', height: '40px', padding: '0 8px', borderRadius: '8px', border: '1px solid var(--border-color)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-            <button onClick={handlePrevMonth} aria-label="Mês anterior" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', outline: 'none', boxShadow: 'none', WebkitTapHighlightColor: 'transparent', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-color)', width: '30px', height: '100%', padding: 0, position: 'relative', top: '-8px' }}>&#10094;</button>
-            <span style={{ textTransform: 'capitalize', fontWeight: 'bold', width: '130px', textAlign: 'center', fontSize: '1rem', margin: 0 }}>
-              {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
-            </span>
-            <button onClick={handleNextMonth} aria-label="Próximo mês" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', outline: 'none', boxShadow: 'none', WebkitTapHighlightColor: 'transparent', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-color)', width: '30px', height: '100%', padding: 0, position: 'relative', top: '-8px' }}>&#10095;</button>
+    <div className="container-fit">
+      {/* Cabeçalho do Relatório exclusivo para Impressão / PDF */}
+      <div className="print-only" style={{ marginBottom: '1.25rem', borderBottom: '2px solid #0f172a', paddingBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
+              Zalio • Relatório Financeiro
+            </h1>
+            <p style={{ fontSize: '0.95rem', margin: '0.25rem 0 0 0', color: '#475569', textTransform: 'capitalize' }}>
+              Mês de Referência: <strong>{format(currentDate, 'MMMM yyyy', { locale: ptBR })}</strong>
+            </p>
+          </div>
+          <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#64748b', lineHeight: 1.5 }}>
+            <div><strong>Emissão:</strong> {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+            <div><strong>Balanço:</strong> {saldoLiquido >= 0 ? 'Superávit' : 'Déficit'} ({formatCurrency(saldoLiquido)})</div>
           </div>
         </div>
+      </div>
 
-        {/* Centro: Título Centralizado */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, textAlign: 'center', fontSize: '1.5rem', whiteSpace: 'nowrap' }}>Dashboard Financeiro</h2>
-        </div>
-        
-        {/* Direita: Controles de Privacidade e Exportar CSV */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.8rem', position: 'relative', top: '-4px' }}>
-          <button onClick={toggleHideValues} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-color)', borderRadius: '8px', cursor: 'pointer', padding: '0', width: '105px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '500', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', whiteSpace: 'nowrap' }}>
-            {hideValues ? '👁️ Mostrar' : '🙈 Ocultar'}
-          </button>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      {/* --- BARRA SUPERIOR DE CONTROLE (COMPACTA) --- */}
+      <div className="no-print" style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '0.65rem',
+        marginBottom: '0.65rem',
+        flexShrink: 0
+      }}>
+        {/* Navegador de Mês */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '0.15rem 0.3rem',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
             <button 
-              onClick={() => setShowExportMenu(!showExportMenu)} 
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--text-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
-              title="Opções de Exportação"
+              onClick={handlePrevMonth} 
+              aria-label="Mês anterior"
+              className="calendar-nav-btn"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-main)',
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                padding: '0.25rem 0.55rem'
+              }}
+            >
+              &#10094;
+            </button>
+
+            <span style={{
+              textTransform: 'capitalize',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              minWidth: '130px',
+              textAlign: 'center',
+              color: 'var(--text-main)'
+            }}>
+              {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+            </span>
+
+            <button 
+              onClick={handleNextMonth} 
+              aria-label="Próximo mês"
+              className="calendar-nav-btn"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-main)',
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                padding: '0.25rem 0.55rem'
+              }}
+            >
+              &#10095;
+            </button>
+          </div>
+
+          {!isCurrentMonth && (
+            <button 
+              onClick={handleCurrentMonth}
+              className="btn-secondary"
+              style={{ padding: '0.35rem 0.7rem', fontSize: '0.78rem' }}
+            >
+              Hoje
+            </button>
+          )}
+        </div>
+
+        {/* Ações Rápidas & Privacidade */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <Link to="/adicionar-entrada" className="btn-primary" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '0.4rem 0.8rem', fontSize: '0.825rem' }}>
+            <IconPlus size={14} /> Nova Entrada
+          </Link>
+
+          <Link to="/adicionar-saida" className="btn-primary" style={{ background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)', padding: '0.4rem 0.8rem', fontSize: '0.825rem' }}>
+            <IconMinus size={14} /> Novo Gasto
+          </Link>
+
+          {/* Toggle de Privacidade */}
+          <button 
+            onClick={toggleHideValues}
+            className="btn-secondary"
+            style={{ padding: '0.4rem 0.7rem', fontSize: '0.825rem' }}
+            title={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
+            aria-label="Alternar Privacidade"
+          >
+            {hideValues ? <><IconEye size={15} /> Mostrar</> : <><IconEyeOff size={15} /> Ocultar</>}
+          </button>
+
+          {/* Menu Exportar */}
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              className="btn-secondary"
+              style={{ padding: '0.4rem 0.6rem' }}
+              title="Exportar Relatório"
               aria-label="Opções de Exportação"
             >
               ⋮
             </button>
             {showExportMenu && (
-              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', background: 'var(--card-bg)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', zIndex: 10, minWidth: '160px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                <button onClick={() => { handleExportCSV(); setShowExportMenu(false); }} style={{ width: '100%', padding: '0.8rem 1rem', background: 'none', border: 'none', borderBottom: '1px solid var(--border-color)', textAlign: 'left', cursor: 'pointer', fontSize: '0.95rem', color: 'var(--text-color)', fontWeight: '500' }}>📄 Exportar CSV</button>
-                <button onClick={() => { window.print(); setShowExportMenu(false); }} style={{ width: '100%', padding: '0.8rem 1rem', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '0.95rem', color: 'var(--text-color)', fontWeight: '500' }}>🖨️ Exportar PDF</button>
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '0.3rem',
+                background: 'var(--card-bg-elevated)',
+                borderRadius: 'var(--radius-sm)',
+                boxShadow: 'var(--shadow-lg)',
+                zIndex: 40,
+                minWidth: '150px',
+                overflow: 'hidden',
+                border: '1px solid var(--border-color)'
+              }}>
+                <button 
+                  onClick={() => { handleExportCSV(); setShowExportMenu(false); }}
+                  className="action-menu-button"
+                  style={{ borderBottom: '1px solid var(--border-color)' }}
+                >
+                  Exportar CSV
+                </button>
+                <button 
+                  onClick={handlePrintReport}
+                  className="action-menu-button"
+                >
+                  Imprimir / PDF
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
-      
-      <div className="dashboard-layout-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'stretch', opacity: isLoadingGlobal ? 0.6 : 1, transition: 'opacity 0.3s' }}>
+
+      {/* --- GRID DE 4 KPIS NO TOPO (COMPACTO) --- */}
+      <section className="dashboard-kpi-grid" style={{ flexShrink: 0 }}>
+        {/* KPI 1: Saldo Líquido */}
+        <div className="kpi-card kpi-balance">
+          <div className="kpi-header">
+            <span className="kpi-title">Balanço do Mês</span>
+            <div className="kpi-icon-wrap" style={{ background: saldoLiquido >= 0 ? 'var(--success-light)' : 'var(--error-light)', color: saldoLiquido >= 0 ? 'var(--success-color)' : 'var(--error-color)' }}>
+              {saldoLiquido >= 0 ? <IconTrendUp size={15} /> : <IconTrendDown size={15} />}
+            </div>
+          </div>
+          <div className="kpi-value currency-val" style={{ color: saldoLiquido >= 0 ? 'var(--success-color)' : 'var(--error-color)' }}>
+            {formatCurrency(saldoLiquido)}
+          </div>
+          <div className="kpi-footer">
+            <span className={`badge ${saldoLiquido >= 0 ? 'badge-success' : 'badge-danger'}`} style={{ padding: '0.05rem 0.4rem', fontSize: '0.68rem' }}>
+              {saldoLiquido >= 0 ? 'Superávit' : 'Déficit'}
+            </span>
+            <span>Entradas - Saídas</span>
+          </div>
+        </div>
+
+        {/* KPI 2: Total de Entradas */}
+        <div className="kpi-card kpi-income">
+          <div className="kpi-header">
+            <span className="kpi-title">Receitas / Entradas</span>
+            <div className="kpi-icon-wrap" style={{ background: 'var(--success-light)', color: 'var(--success-color)' }}>
+              <IconWallet size={15} />
+            </div>
+          </div>
+          <div className="kpi-value currency-val" style={{ color: 'var(--success-color)' }}>
+            {formatCurrency(totalEntradas)}
+          </div>
+          <div className="kpi-footer">
+            <span className="badge badge-success" style={{ padding: '0.05rem 0.4rem', fontSize: '0.68rem' }}>
+              {transacoesEntradas.length} {transacoesEntradas.length === 1 ? 'entrada' : 'entradas'}
+            </span>
+            {dadosFinanceiros?.[0]?.salario > 0 && (
+              <span style={{ fontSize: '0.7rem' }}>
+                Base: {formatCurrency(dadosFinanceiros[0].salario)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* KPI 3: Total de Saídas */}
+        <div className="kpi-card kpi-expense">
+          <div className="kpi-header">
+            <span className="kpi-title">Total de Despesas</span>
+            <div className="kpi-icon-wrap" style={{ background: 'var(--error-light)', color: 'var(--error-color)' }}>
+              <IconCreditCard size={15} />
+            </div>
+          </div>
+          <div className="kpi-value currency-val" style={{ color: 'var(--error-color)' }}>
+            {formatCurrency(totalGasto)}
+          </div>
+          <div className="kpi-footer">
+            <span>Fixas: <strong style={{ color: 'var(--text-main)' }}>{formatCurrency(totalFixas)}</strong></span>
+            <span>•</span>
+            <span>Var: <strong style={{ color: 'var(--text-main)' }}>{formatCurrency(totalVariaveis)}</strong></span>
+          </div>
+        </div>
+
+        {/* KPI 4: Taxa de Economia */}
+        <div className="kpi-card kpi-savings">
+          <div className="kpi-header">
+            <span className="kpi-title">Taxa de Poupança</span>
+            <div className="kpi-icon-wrap" style={{ background: 'var(--accent-purple-light)', color: 'var(--accent-purple)' }}>
+              <IconPiggyBank size={15} />
+            </div>
+          </div>
+          <div className="kpi-value tabular-nums" style={{ color: 'var(--accent-purple)' }}>
+            {taxaEconomia}%
+          </div>
+          <div className="kpi-footer">
+            <span className={`badge ${taxaEconomia >= 20 ? 'badge-success' : taxaEconomia > 0 ? 'badge-info' : 'badge-danger'}`} style={{ padding: '0.05rem 0.4rem', fontSize: '0.68rem' }}>
+              {taxaEconomia >= 20 ? 'Excelente' : taxaEconomia > 0 ? 'No Azul' : 'Atenção'}
+            </span>
+            <span>da renda sobrou</span>
+          </div>
+        </div>
+      </section>
+
+      {/* --- GRID PRINCIPAL FLUIDO (SE ENCAIXA 100% NO VIEWPORT DO DESKTOP) --- */}
+      <div className="dashboard-main-grid-fixed">
         
-        {/* Coluna Esquerda: Cards */}
-        <div className="dashboard-column-print" style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-          <div className="dashboard-card" style={{ padding: '2rem 1.5rem 1.2rem', margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <h3 style={{ margin: '0 0 0.5rem 0' }}>Total de Entradas</h3>
-            <p className="total-value" style={{ fontSize: '2rem', color: '#10b981', margin: 0 }}>
-              {formatCurrency(totalEntradas)}
-            </p>
-          </div>
-
-          <div className="dashboard-card" style={{ padding: '2rem 1.5rem 1.2rem', margin: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <h3 style={{ margin: '0 0 0.5rem 0' }}>Total de Saídas</h3>
-            <p className="total-value" style={{ fontSize: '2rem', color: '#ef4444', margin: 0 }}>
-              {formatCurrency(totalGasto)}
-            </p>
-          </div>
-
-          <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', width: '100%' }}>
-            <Link to="/adicionar-entrada" style={{ width: '100%', textDecoration: 'none' }}>
-              <button style={{ backgroundColor: '#10b981', color: '#fff', width: '100%', margin: 0, padding: '0.8rem', fontSize: '0.95rem', fontWeight: 'bold', boxSizing: 'border-box' }}>+ Entrada</button>
-            </Link>
-            <Link to="/adicionar-saida" style={{ width: '100%', textDecoration: 'none' }}>
-              <button style={{ backgroundColor: '#ef4444', color: '#fff', width: '100%', margin: 0, padding: '0.8rem', fontSize: '0.95rem', fontWeight: 'bold', boxSizing: 'border-box' }}>- Saída</button>
-            </Link>
-          </div>
-
-          {/* Orçamento do Mês (Gasto vs Recebido) */}
-          <div className="dashboard-card" style={{ padding: '1.5rem', margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>Orçamento do Mês</h3>
-            <div className="budget-progress-container" style={{ width: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', marginBottom: '0.8rem' }}>
-                <span>Gasto vs Recebido</span>
-                <span style={{ fontWeight: 500 }}>{formatCurrency(totalGasto)} / {formatCurrency(totalEntradas)}</span>
-              </div>
-              <div className="progress-bar-track" style={{ height: '8px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                {(() => {
-                  const isOver = totalGasto > totalEntradas && totalEntradas > 0;
-                  const barColor = isOver ? '#ef4444' : (budgetAnimPerc > 80 ? '#f59e0b' : '#10b981');
-                  return (
-                    <div className="progress-bar-fill" style={{ height: '100%', width: `${budgetAnimPerc}%`, backgroundColor: barColor, borderTop: `8px solid ${barColor}`, boxSizing: 'border-box', transition: 'width 0.8s ease-out' }}></div>
-                  );
-                })()}
-              </div>
-              {totalGasto > totalEntradas && totalEntradas > 0 && (
-                <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.8rem', marginBottom: 0, textAlign: 'center', fontWeight: '600' }}>
-                  Atenção: Você gastou mais do que recebeu!
+        {/* COLUNA ESQUERDA: GRÁFICO + BARRA DUPLA DE ORÇAMENTO & COFRINHO */}
+        <div className="dashboard-section-fixed">
+          
+          {/* Card do Gráfico Rosquinha (Fluido e autoajustável com a altura da janela) */}
+          <div className="modern-card" style={{ flex: 1, minHeight: '150px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '0.4rem',
+              flexShrink: 0
+            }}>
+              <div>
+                <h3 style={{ fontSize: '0.95rem', margin: 0 }}>Distribuição Mensal</h3>
+                <p style={{ fontSize: '0.74rem', margin: '0.1rem 0 0 0' }}>
+                  Detalhamento visual por categoria
                 </p>
-              )}
+              </div>
+
+              {/* Seletor Saídas / Entradas */}
+              <div className="no-print" style={{
+                display: 'flex',
+                background: 'var(--bg-subtle)',
+                padding: '0.15rem',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border-color)'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setDataType('saidas')}
+                  style={{
+                    background: isSaidas ? 'var(--card-bg)' : 'transparent',
+                    color: isSaidas ? 'var(--error-color)' : 'var(--text-secondary)',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    padding: '0.2rem 0.65rem',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    boxShadow: isSaidas ? 'var(--shadow-sm)' : 'none'
+                  }}
+                >
+                  Saídas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDataType('entradas')}
+                  style={{
+                    background: !isSaidas ? 'var(--card-bg)' : 'transparent',
+                    color: !isSaidas ? 'var(--success-color)' : 'var(--text-secondary)',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    padding: '0.2rem 0.65rem',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    boxShadow: !isSaidas ? 'var(--shadow-sm)' : 'none'
+                  }}
+                >
+                  Entradas
+                </button>
+              </div>
             </div>
 
-            {/* Cofrinho */}
-            <div className="piggy-bank-progress-container" style={{ width: '100%', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
-              <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem' }}>Meu Cofrinho 🐷</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', marginBottom: '0.8rem' }}>
-                <span>Guardado vs Meta</span>
-                <span style={{ fontWeight: 500 }}>{formatCurrency(valorCofrinho)} / {formatCurrency(metaCofrinho)}</span>
+            {!isLoadingGlobal && (isSaidas ? totalGasto : totalEntradas) === 0 ? (
+              <div style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.6rem',
+                padding: '1.5rem',
+                textAlign: 'center'
+              }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '50%',
+                  background: 'var(--bg-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  <IconCategory name="Outros" size={22} color="var(--text-muted)" />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 600 }}>Nenhuma movimentação registrada</h4>
+                  <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    Não há {isSaidas ? 'gastos' : 'entradas'} lançados neste mês.
+                  </p>
+                </div>
               </div>
-              <div className="progress-bar-track" style={{ height: '8px', background: 'var(--bg-app, #e5e7eb)', borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                <div className="progress-bar-fill" style={{ height: '100%', width: `${cofrinhoAnimPerc}%`, backgroundColor: '#3b82f6', borderTop: '8px solid #3b82f6', boxSizing: 'border-box', transition: 'width 0.8s ease-out' }}></div>
+            ) : (
+              <div style={{
+                flex: 1,
+                minHeight: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1.5rem',
+                padding: '0.25rem 0.15rem',
+                overflow: 'hidden'
+              }}>
+                {/* Visual da Rosquinha Fluida na Tela (interativo via ChartJS) */}
+                <div className="chart-doughnut-wrapper no-print" style={{
+                  position: 'relative',
+                  height: '100%',
+                  maxHeight: '215px',
+                  minHeight: '110px',
+                  aspectRatio: '1 / 1',
+                  maxWidth: '100%',
+                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto'
+                }}>
+                  <Doughnut data={dataGraph} options={chartOptions} />
+                  <div className="chart-doughnut-inner-text" style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                    textAlign: 'center',
+                    padding: '0.4rem'
+                  }}>
+                    <span style={{ fontSize: 'clamp(0.55rem, 1.1vh, 0.72rem)', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+                      {isSaidas ? 'Total Gasto' : 'Total Recebido'}
+                    </span>
+                    <strong className="currency-val" style={{ fontSize: 'clamp(0.92rem, 2.2vh, 1.25rem)', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.1rem', whiteSpace: 'nowrap' }}>
+                      {formatCurrency(isSaidas ? totalGasto : totalEntradas)}
+                    </strong>
+                    <span style={{ fontSize: 'clamp(0.55rem, 1vh, 0.68rem)', color: 'var(--text-muted)', marginTop: '0.05rem' }}>
+                      {currentLabels.filter((_, idx) => (rawData[idx] || 0) > 0).length} {currentLabels.filter((_, idx) => (rawData[idx] || 0) > 0).length === 1 ? 'categoria' : 'categorias'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Visual da Rosquinha Vetorial no PDF / Impressão (100% circular, nunca deforma) */}
+                <div className="print-only chart-doughnut-svg-print" style={{
+                  flexShrink: 0,
+                  margin: '0 auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <svg viewBox="0 0 200 200" width="165" height="165" style={{ display: 'block', margin: '0 auto' }}>
+                    <g transform="rotate(-90 100 100)">
+                      {svgDonutSlices.map((slice) => (
+                        <circle
+                          key={slice.cat}
+                          cx="100"
+                          cy="100"
+                          r="66"
+                          fill="transparent"
+                          stroke={slice.color}
+                          strokeWidth="22"
+                          strokeDasharray={slice.dashArray}
+                          strokeDashoffset={slice.dashOffset}
+                        />
+                      ))}
+                    </g>
+                    <text x="100" y="85" textAnchor="middle" fontSize="9.5" fontWeight="700" fill="#64748b" letterSpacing="0.05em">
+                      {isSaidas ? 'TOTAL GASTO' : 'TOTAL RECEBIDO'}
+                    </text>
+                    <text x="100" y="106" textAnchor="middle" fontSize="13.5" fontWeight="800" fill="#0f172a">
+                      {formatCurrency(isSaidas ? totalGasto : totalEntradas)}
+                    </text>
+                    <text x="100" y="123" textAnchor="middle" fontSize="9" fill="#94a3b8">
+                      {currentLabels.filter((_, idx) => (rawData[idx] || 0) > 0).length} {currentLabels.filter((_, idx) => (rawData[idx] || 0) > 0).length === 1 ? 'categoria' : 'categorias'}
+                    </text>
+                  </svg>
+                </div>
+
+                {/* Legenda em Cards Modernos com Barras de Proporção */}
+                <div className="custom-scroll" style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
+                  maxHeight: '100%',
+                  overflowY: 'auto',
+                  paddingRight: '0.35rem',
+                  justifyContent: 'center',
+                  flex: 1,
+                  minWidth: 0
+                }}>
+                  {currentLabels.map((cat, idx) => {
+                    const val = rawData[idx] || 0;
+                    const perc = totalParaPorcentagem > 0 ? Math.round((val / totalParaPorcentagem) * 100) : 0;
+                    const color = currentColors[idx];
+                    if (val === 0) return null;
+
+                    return (
+                      <div key={cat} className="print-category-card" style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.35rem',
+                        background: 'var(--bg-subtle)',
+                        padding: '0.55rem 0.85rem',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border-color)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <IconCategory name={cat} size={15} color={color} />
+                            <span style={{ fontWeight: 600, fontSize: '0.84rem', color: 'var(--text-main)' }}>{cat}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <span className="badge badge-neutral" style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', fontWeight: 600 }}>
+                              {perc}%
+                            </span>
+                            <strong className="currency-val" style={{ color: 'var(--text-main)', fontSize: '0.88rem' }}>
+                              {formatCurrency(val)}
+                            </strong>
+                          </div>
+                        </div>
+                        <div style={{ width: '100%', height: '4px', background: 'var(--card-bg)', borderRadius: '2px', overflow: 'hidden' }}>
+                          <div style={{ width: `${perc}%`, height: '100%', background: color, borderRadius: '2px', transition: 'width 0.4s ease' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sub-grid Dupla Lado a Lado: Orçamento & Cofrinho */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', flexShrink: 0 }}>
+            {/* Card: Termômetro do Orçamento */}
+            <div className="modern-card" style={{ padding: '0.75rem 1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <IconCreditCard size={14} color="var(--primary-color)" /> Orçamento
+                </span>
+                <span className="currency-val" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  {formatCurrency(totalGasto)} / {formatCurrency(totalEntradas)}
+                </span>
+              </div>
+
+              <div className="progress-track" style={{ height: '6px' }}>
+                <div 
+                  className="progress-fill" 
+                  style={{
+                    width: `${budgetAnimPerc}%`,
+                    background: totalGasto > totalEntradas && totalEntradas > 0 
+                      ? 'var(--error-color)' 
+                      : budgetAnimPerc > 80 
+                      ? 'var(--warning-color)' 
+                      : 'var(--success-color)'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.38rem', fontSize: '0.75rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  {totalGasto > totalEntradas && totalEntradas > 0 ? (
+                    <strong style={{ color: 'var(--error-color)' }}>Déficit no mês</strong>
+                  ) : (
+                    <span>Livre: <strong style={{ color: 'var(--success-color)' }}>{formatCurrency(Math.max(0, saldoLiquido))}</strong></span>
+                  )}
+                </span>
+                <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  {Math.round(budgetAnimPerc)}%
+                </span>
+              </div>
+            </div>
+
+            {/* Card: Meu Cofrinho Resumo */}
+            <div className="modern-card" style={{ padding: '0.75rem 1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <IconPiggyBank size={14} color="var(--accent-purple)" /> Cofrinhos
+                </span>
+                <Link to="/cofrinho" className="no-print" style={{ fontSize: '0.72rem', color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 600 }}>
+                  Acessar →
+                </Link>
+              </div>
+
+              <div className="progress-track" style={{ height: '6px' }}>
+                <div 
+                  className="progress-fill" 
+                  style={{
+                    width: `${cofrinhoAnimPerc}%`,
+                    background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.38rem', fontSize: '0.75rem' }}>
+                <span className="currency-val" style={{ color: 'var(--text-secondary)' }}>
+                  Total: <strong style={{ color: 'var(--text-main)' }}>{formatCurrency(cofrinhoTotal.saldo)}</strong>
+                </span>
+                <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  {Math.round(cofrinhoAnimPerc)}%
+                </span>
               </div>
             </div>
           </div>
 
         </div>
 
-        {/* Coluna Direita: Gráficos e Legenda */}
-        <div className="dashboard-column-print" style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)', padding: '1.5rem 2rem', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', border: '1px solid var(--border-color)' }}>
+        {/* COLUNA DIREITA: PRÓXIMOS VENCIMENTOS, DESTAQUES E FEED */}
+        <div className="dashboard-section-fixed">
           
-          <div className="chart-controls no-print" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <label htmlFor="dataType" style={{ fontWeight: '600', margin: 0 }}>Dados:</label>
-              <select 
-                id="dataType" 
-                value={dataType} 
-                onChange={(e) => setDataType(e.target.value)}
-                className="input-field"
-                style={{ 
-                  width: 'auto', 
-                  padding: '0.5rem 2.5rem 0.5rem 1rem', 
-                  margin: 0,
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.8rem center'
-                }}
-              >
-                <option value="saidas">Saídas</option>
-                <option value="entradas">Entradas</option>
-              </select>
+          {/* Card: Próximas Contas a Vencer */}
+          <div className="modern-card" style={{ flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <IconCalendar size={15} color="var(--primary-color)" />
+                <h3 style={{ fontSize: '0.9rem', margin: 0 }}>Contas Fixas do Mês</h3>
+              </div>
+              <Link to="/despesas-fixas" className="no-print" style={{ fontSize: '0.74rem', color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 600 }}>
+                Ver todas ({formatCurrency(totalFixas)})
+              </Link>
             </div>
+
+            {contasOrdenadas.length === 0 ? (
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '0.4rem 0', margin: 0 }}>
+                Nenhuma conta fixa cadastrada. <Link to="/despesas-fixas" style={{ color: 'var(--primary-color)' }}>Cadastrar</Link>
+              </p>
+            ) : (
+              <div className="custom-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', maxHeight: '110px', overflowY: 'auto', paddingRight: '0.2rem' }}>
+                {contasOrdenadas.slice(0, 3).map(conta => {
+                  const venc = Number(conta.vencimento);
+                  const diasRestantes = venc - hojeDia;
+                  const statusBadge = diasRestantes === 0 
+                    ? { text: 'Vence hoje!', cls: 'badge-danger' }
+                    : diasRestantes > 0 && diasRestantes <= 5 
+                    ? { text: `Em ${diasRestantes} dias`, cls: 'badge-danger' }
+                    : diasRestantes < 0 
+                    ? { text: `Dia ${venc}`, cls: 'badge-neutral' }
+                    : { text: `Dia ${venc}`, cls: 'badge-info' };
+
+                  return (
+                    <div key={conta.id} className="print-fixed-item" style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.35rem 0.65rem',
+                      background: 'var(--bg-subtle)',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-color)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <strong style={{ fontSize: '0.82rem', color: 'var(--text-main)' }}>{conta.nome}</strong>
+                        <span className={`badge ${statusBadge.cls}`} style={{ fontSize: '0.65rem', padding: '0.08rem 0.35rem' }}>
+                          {statusBadge.text}
+                        </span>
+                      </div>
+                      <strong className="currency-val" style={{ color: 'var(--error-color)', fontSize: '0.85rem' }}>
+                        {formatCurrency(conta.valor)}
+                      </strong>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-      {!isLoadingGlobal && (isSaidas ? totalGasto : totalEntradas) === 0 ? (
-            <div className="chart-container" style={{ marginTop: '2rem', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{textAlign:'center', color: 'var(--text-secondary)'}}>Nenhuma {isSaidas ? 'saída' : 'entrada'} registrada neste mês.</p>
-            </div>
-      ) : (
-        /* Mudamos o alignItems de 'center' para 'flex-start' para travar o título no topo */
-        <div className="dashboard-content" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '2rem', width: '100%', marginTop: '0.5rem', opacity: isLoadingGlobal ? 0.5 : 1, transition: 'opacity 0.4s ease' }}>
-                <div 
-                  className="chart-container" 
-                  style={{ width: '240px', height: '240px', position: 'relative', flexShrink: 0, margin: '0 auto' }}
-                >
-                  <Doughnut data={dataGraph} options={options} />
-                  {/* Texto Centralizado no Buraco da Rosquinha */}
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>Saldo Restante</span>
-                    <strong style={{ fontSize: '1.15rem', color: 'var(--text-main)' }}>
-                      {formatCurrency(totalEntradas - totalGasto)}
+          {/* Card: Destaques Financeiros (se existirem) */}
+          {(maiorGasto || maiorEntrada) && (
+            <div className="modern-card" style={{ flexShrink: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+                {maiorGasto && (
+                  <div style={{
+                    padding: '0.5rem 0.75rem',
+                    background: 'var(--error-light)',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--error-border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.15rem'
+                  }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--error-color)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <IconTrendDown size={12} /> Maior Gasto
+                    </span>
+                    <strong style={{ fontSize: '0.82rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {maiorGasto.descricao}
                     </strong>
-                  </div>
-                </div>
-                
-                <div className="custom-legend" style={{ flex: '1 1 250px', display: 'flex', flexDirection: 'column' }}>
-                  <h3 style={{ marginTop: 0, marginBottom: '1.2rem', fontSize: '1.1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.8rem' }}>Resumo por {isSaidas ? 'Categoria' : 'Descrição'}</h3>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    {currentLabels.map((cat, index) => ({ cat, valor: rawData[index], color: currentColors[index] }))
-                      .sort((a, b) => a.cat.localeCompare(b.cat))
-                      .map(({ cat, valor, color }) => (
-                      <li key={cat} className="legend-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                          <span className="legend-color-square" style={{ display: 'inline-block', width: '14px', height: '14px', backgroundColor: color, border: `7px solid ${color}`, boxSizing: 'border-box', borderRadius: '4px' }}></span>
-                          <span style={{ fontWeight: '500' }}>{cat}</span>
-                        </div>
-                        <strong style={{ opacity: 0.9 }}>{formatCurrency(valor)}</strong>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-            {/* Destaques do Mês (Preenche o espaço vazio elegantemente) */}
-            {(maiorGasto || maiorEntrada) && (
-                  <div style={{ width: '100%', marginTop: '1rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)' }}>Destaques do Mês</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {maiorGasto && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-color)', padding: '1rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                        <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Maior Gasto</span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{maiorGasto.descricao}</span>
-                      </div>
-                      <strong style={{ color: '#ef4444', fontSize: '1.15rem' }}>
-                        {formatCurrency(maiorGasto.valor)}
-                      </strong>
-                    </div>
-                  )}
-                  {maiorEntrada && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-color)', padding: '1rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                        <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Maior Entrada</span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{maiorEntrada.descricao}</span>
-                      </div>
-                      <strong style={{ color: '#10b981', fontSize: '1.15rem' }}>
-                        {formatCurrency(maiorEntrada.valor)}
-                      </strong>
-                    </div>
-                  )}
-                    </div>
+                    <span className="currency-val" style={{ fontWeight: 800, color: 'var(--error-color)', fontSize: '0.92rem' }}>
+                      {formatCurrency(maiorGasto.valor)}
+                    </span>
                   </div>
                 )}
+
+                {maiorEntrada && (
+                  <div style={{
+                    padding: '0.5rem 0.75rem',
+                    background: 'var(--success-light)',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--success-border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.15rem'
+                  }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--success-color)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <IconTrendUp size={12} /> Maior Entrada
+                    </span>
+                    <strong style={{ fontSize: '0.82rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {maiorEntrada.descricao}
+                    </strong>
+                    <span className="currency-val" style={{ fontWeight: 800, color: 'var(--success-color)', fontSize: '0.92rem' }}>
+                      {formatCurrency(maiorEntrada.valor)}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
+
+          {/* Card: Lançamentos Recentes */}
+          <div className="modern-card print-hide" style={{ flex: 1, minHeight: '120px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexShrink: 0 }}>
+              <h3 style={{ fontSize: '0.9rem', margin: 0 }}>Lançamentos Recentes</h3>
+              <Link to="/historico" className="no-print" style={{ fontSize: '0.74rem', color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 600 }}>
+                Ver histórico →
+              </Link>
+            </div>
+
+            {ultimasTransacoes.length === 0 ? (
+              <div style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.65rem',
+                padding: '1.25rem',
+                textAlign: 'center'
+              }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '50%',
+                  background: 'var(--bg-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  <IconReceipt size={22} color="var(--text-muted)" />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-main)', fontWeight: 600 }}>
+                    Sem lançamentos neste mês
+                  </h4>
+                  <p style={{ margin: '0.2rem 0 0.75rem 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    Nenhuma despesa ou receita registrada no período.
+                  </p>
+                </div>
+                <div className="no-print" style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Link to="/adicionar-entrada" className="btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.76rem' }}>
+                    <IconPlus size={13} /> Entrada
+                  </Link>
+                  <Link to="/adicionar-saida" className="btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.76rem' }}>
+                    <IconMinus size={13} /> Gasto
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <ul className="tx-list custom-scroll" style={{ flex: 1, overflowY: 'auto', paddingRight: '0.2rem' }}>
+                {ultimasTransacoes.map(item => {
+                  const isEntrada = item.tipo === 'entrada';
+                  return (
+                    <li key={item.id} className="tx-item" style={{ padding: '0.45rem 0.65rem' }}>
+                      <div className="tx-icon" style={{
+                        width: '26px',
+                        height: '26px',
+                        background: isEntrada ? 'var(--success-light)' : 'var(--error-light)',
+                        color: isEntrada ? 'var(--success-color)' : 'var(--error-color)'
+                      }}>
+                        {isEntrada ? <IconArrowDownLeft size={13} /> : <IconArrowUpRight size={13} />}
+                      </div>
+                      <div className="tx-details">
+                        <span className="tx-title" style={{ fontSize: '0.82rem' }}>{item.descricao}</span>
+                        <span className="tx-meta" style={{ fontSize: '0.7rem' }}>
+                          {new Date(item.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                          {item.categoria && <span>• {item.categoria}</span>}
+                        </span>
+                      </div>
+                      <div className={`tx-amount currency-val ${isEntrada ? 'income' : 'expense'}`} style={{ fontSize: '0.86rem', margin: 0 }}>
+                        {isEntrada ? '+' : '-'} {formatCurrency(item.valor)}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
         </div>
       </div>
-    </main>
+
+      {/* Rodapé institucional da Página 1 do Relatório */}
+      <div className="print-only print-page-footer" style={{
+        marginTop: '1.25rem',
+        paddingTop: '0.6rem',
+        borderTop: '1px solid #e2e8f0',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        fontSize: '0.72rem',
+        color: '#94a3b8'
+      }}>
+        <div>Zalio • Relatório Executivo — Visão Geral</div>
+        <div>
+          {todasTransacoesOrdenadas.length > 0
+            ? `Extrato com ${todasTransacoesOrdenadas.length} ${todasTransacoesOrdenadas.length === 1 ? 'lançamento detalhado' : 'lançamentos detalhados'} na página seguinte →`
+            : `Emissão: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
+        </div>
+      </div>
+
+      {/* TABELA DE HISTÓRICO COMPLETO DO MÊS EXCLUSIVA PARA IMPRESSÃO / PDF (INICIA LIMPA NA PÁGINA 2) */}
+      {todasTransacoesOrdenadas.length > 0 && (
+        <div className="print-only print-page-break" style={{ width: '100%' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            borderBottom: '2px solid #0f172a',
+            paddingBottom: '0.5rem',
+            marginBottom: '0.85rem'
+          }}>
+            <div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Zalio • Extrato Financeiro Detalhado
+              </div>
+              <h2 style={{ margin: '0.15rem 0 0 0', fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>
+                Histórico de Lançamentos do Mês
+              </h2>
+              <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                Relação cronológica completa de receitas e despesas ({todasTransacoesOrdenadas.length} {todasTransacoesOrdenadas.length === 1 ? 'lançamento' : 'lançamentos'})
+              </p>
+            </div>
+            <div style={{ textAlign: 'right', fontSize: '0.72rem', color: '#475569' }}>
+              <div style={{ fontWeight: 800, fontSize: '0.84rem', color: '#0f172a', textTransform: 'capitalize' }}>
+                {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+              </div>
+              <div style={{ color: '#64748b', fontSize: '0.68rem', marginTop: '0.15rem' }}>
+                Página 2 • Emissão: {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          </div>
+
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: '0.78rem',
+            color: '#0f172a'
+          }}>
+            <thead>
+              <tr style={{ background: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left' }}>
+                <th style={{ padding: '0.5rem 0.65rem', fontWeight: 700, width: '90px' }}>Data</th>
+                <th style={{ padding: '0.5rem 0.65rem', fontWeight: 700 }}>Descrição</th>
+                <th style={{ padding: '0.5rem 0.65rem', fontWeight: 700, width: '130px' }}>Categoria</th>
+                <th style={{ padding: '0.5rem 0.65rem', fontWeight: 700, width: '85px', textAlign: 'center' }}>Tipo</th>
+                <th style={{ padding: '0.5rem 0.65rem', fontWeight: 700, textAlign: 'right', width: '110px' }}>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {todasTransacoesOrdenadas.map((item, index) => {
+                const isEntrada = item.tipo === 'entrada';
+                const rowBg = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+                return (
+                  <tr key={item.id || index} style={{
+                    background: rowBg,
+                    borderBottom: '1px solid #e2e8f0'
+                  }}>
+                    <td style={{ padding: '0.42rem 0.65rem', color: '#475569', whiteSpace: 'nowrap' }}>
+                      {item.date ? new Date(item.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}
+                    </td>
+                    <td style={{ padding: '0.42rem 0.65rem', fontWeight: 600, color: '#0f172a' }}>
+                      {item.descricao || 'Sem descrição'}
+                    </td>
+                    <td style={{ padding: '0.42rem 0.65rem', color: '#475569' }}>
+                      {item.categoria || 'Outros'}
+                    </td>
+                    <td style={{ padding: '0.42rem 0.65rem', textAlign: 'center' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '0.08rem 0.45rem',
+                        borderRadius: '4px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        background: isEntrada ? '#d1fae5' : '#fee2e2',
+                        color: isEntrada ? '#065f46' : '#991b1b'
+                      }}>
+                        {isEntrada ? 'Entrada' : 'Saída'}
+                      </span>
+                    </td>
+                    <td style={{
+                      padding: '0.42rem 0.65rem',
+                      textAlign: 'right',
+                      fontWeight: 700,
+                      color: isEntrada ? '#059669' : '#e11d48',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {isEntrada ? '+' : '-'} {formatCurrency(item.valor)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr style={{ background: '#f1f5f9', borderTop: '2px solid #cbd5e1', fontWeight: 700 }}>
+                <td colSpan={3} style={{ padding: '0.55rem 0.65rem', color: '#334155' }}>
+                  Totais do Período ({todasTransacoesOrdenadas.length} {todasTransacoesOrdenadas.length === 1 ? 'lançamento' : 'lançamentos'})
+                </td>
+                <td style={{ padding: '0.55rem 0.65rem', textAlign: 'center', fontSize: '0.72rem', color: '#64748b' }}>
+                  Saldo
+                </td>
+                <td style={{
+                  padding: '0.55rem 0.65rem',
+                  textAlign: 'right',
+                  fontWeight: 800,
+                  fontSize: '0.86rem',
+                  color: saldoLiquido >= 0 ? '#059669' : '#e11d48'
+                }}>
+                  {saldoLiquido >= 0 ? '+' : ''}{formatCurrency(saldoLiquido)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+
+          {/* Rodapé institucional da Página 2 */}
+          <div style={{
+            marginTop: '1.25rem',
+            paddingTop: '0.6rem',
+            borderTop: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '0.7rem',
+            color: '#94a3b8'
+          }}>
+            <div>Zalio • Gestão Financeira Pessoal</div>
+            <div>Relatório emitido em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import Footer from './components/Footer';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+test('renders footer author and copyright', () => {
+  render(<Footer />);
+  const authorElement = screen.getByText(/Renan Willian/i);
+  expect(authorElement).toBeInTheDocument();
 });

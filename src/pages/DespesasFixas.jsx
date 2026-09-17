@@ -1,19 +1,26 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { supabase } from '../supabaseClient'; // Importar supabase
+import { supabase } from '../supabaseClient';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useData } from '../contexts/DataContext';
+import { 
+  IconPlus, 
+  IconEdit, 
+  IconTrash, 
+  IconClose, 
+  IconLock,
+  IconCalendar
+} from '../components/Icons';
 
 export default function DespesasFixas() {
   const [nome, setNome] = useState('');
   const [valor, setValor] = useState('');
   const [vencimento, setVencimento] = useState('');
   const [editandoId, setEditandoId] = useState(null);
-  const [menuAbertoId, setMenuAbertoId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth0();
   const { despesasFixas: despesas, carregarTudo } = useData();
   const [hideValues, setHideValues] = useState(() => localStorage.getItem('hideValues') === 'true');
 
-  // Sincroniza a visibilidade com as outras telas
   useEffect(() => {
     const handleSync = () => setHideValues(localStorage.getItem('hideValues') === 'true');
     window.addEventListener('hideValuesChanged', handleSync);
@@ -25,144 +32,291 @@ export default function DespesasFixas() {
   }, []);
 
   const formatCurrency = (value) => {
-    if (hideValues) return 'R$ *****';
-    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    if (hideValues) return 'R$ ••••••';
+    return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.action-menu-container')) {
-        setMenuAbertoId(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const limparFormulario = () => {
+  const abrirModalNovo = () => {
     setNome('');
     setValor('');
     setVencimento('');
     setEditandoId(null);
+    setIsModalOpen(true);
+  };
+
+  const abrirModalEditar = (item) => {
+    setNome(item.nome);
+    setValor(item.valor);
+    setVencimento(item.vencimento);
+    setEditandoId(item.id);
+    setIsModalOpen(true);
+  };
+
+  const fecharModal = () => {
+    setNome('');
+    setValor('');
+    setVencimento('');
+    setEditandoId(null);
+    setIsModalOpen(false);
   };
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    if (!nome || !valor || !vencimento) return;
+
     const payload = {
-      nome: nome,
-      valor: Number(valor), // Garante que o valor é um número
-      vencimento: Number(vencimento), // Garante que o vencimento é um número
+      nome: nome.trim(),
+      valor: Number(valor),
+      vencimento: Number(vencimento),
       user_id: user?.sub
     };
 
     if (editandoId) {
       const { error } = await supabase.from('despesas_fixas').update(payload).eq('id', editandoId);
-      if (error) {
-        alert('Erro ao atualizar despesa: ' + error.message);
-      }
+      if (error) alert('Erro ao atualizar: ' + error.message);
     } else {
       const { error } = await supabase.from('despesas_fixas').insert([payload]);
-      if (error) {
-        alert('Erro ao registrar despesa: ' + error.message);
-      }
+      if (error) alert('Erro ao registrar: ' + error.message);
     }
 
-    limparFormulario();
+    fecharModal();
     carregarTudo();
   }, [nome, valor, vencimento, editandoId, carregarTudo, user?.sub]);
-
-  const handleEdit = (item) => {
-    setEditandoId(item.id);
-    setNome(item.nome);
-    setValor(item.valor);
-    setVencimento(item.vencimento);
-  };
 
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir esta despesa fixa?')) {
       const { error } = await supabase.from('despesas_fixas').delete().eq('id', id);
-      if (error) {
-        alert('Erro ao excluir despesa: ' + error.message);
-      }
+      if (error) alert('Erro ao excluir: ' + error.message);
       carregarTudo();
     }
   };
 
+  const totalFixas = despesas.reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+  const mediaPorConta = despesas.length > 0 ? (totalFixas / despesas.length) : 0;
+  const despesasOrdenadas = [...despesas].sort((a, b) => Number(a.vencimento) - Number(b.vencimento));
+
   return (
-    <main className="container" style={{ maxWidth: '1000px', paddingTop: '1rem' }}>
-      <h2 style={{ textAlign: 'center', marginTop: 0 }}>Minhas Despesas Fixas</h2>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', textAlign: 'center' }}>
-        Registre suas contas recorrentes mensais (Assinaturas, Aluguel, etc.)
-      </p>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'flex-start' }}>
-        {/* Formulário */}
-        <div className="dashboard-card" style={{ flex: '1 1 300px', padding: '1.5rem' }}>
-          <h3 style={{ marginTop: 0, marginBottom: '1.5rem' }}>{editandoId ? 'Editar Despesa' : 'Nova Despesa Fixa'}</h3>
-          <form onSubmit={handleSubmit} className="grid">
-            <div>
-              <label>Nome da Conta</label>
-              <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Aluguel, Internet..." required />
-            </div>
-            <div>
-              <label>Valor Mensal (R$)</label>
-              <input type="number" step="0.01" value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0.00" required />
-            </div>
-            <div>
-              <label>Dia do Vencimento</label>
-              <input type="number" min="1" max="31" value={vencimento} onChange={(e) => setVencimento(e.target.value)} placeholder="Ex: 10" required />
-            </div>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-              <button type="submit" style={{ margin: 0, flex: 1 }}>{editandoId ? 'Atualizar' : 'Adicionar'}</button>
-              {editandoId && (
-                <button type="button" onClick={limparFormulario} style={{ margin: 0, flex: 1, backgroundColor: '#6b7280' }}>Cancelar</button>
-              )}
-            </div>
-          </form>
+    <div className="container" style={{ maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+      {/* Top Header */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '1rem',
+        marginBottom: '1.5rem',
+        paddingBottom: '1rem',
+        borderBottom: '1px solid var(--border-color)'
+      }}>
+        <div>
+          <h2 style={{ fontSize: '1.5rem', margin: 0, textAlign: 'left' }}>Despesas Fixas</h2>
+          <p style={{ fontSize: '0.85rem', margin: '0.2rem 0 0 0' }}>
+            Controle suas contas mensais e assinaturas recorrentes
+          </p>
         </div>
 
-        {/* Lista de Despesas */}
-        <div className="dashboard-card" style={{ flex: '2 1 400px', padding: '1.5rem', height: '500px', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ marginTop: 0, marginBottom: '1.5rem', flexShrink: 0 }}>Contas Cadastradas</h3>
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem' }}>
-            {despesas.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Nenhuma despesa fixa registrada.</p>
-            ) : (
-              <ul className="expense-list">
-              {despesas.map((item, index) => {
-                const openUp = index >= despesas.length - 2 && despesas.length > 2;
-                return (
-                <li key={item.id} className="expense-item" style={{ padding: '0.8rem 1rem', position: 'relative' }}>
-                  <div className="expense-info" style={{ flexGrow: 1 }}>
-                    <strong>{item.nome}</strong>
-                    <span className="expense-date">Vence todo dia {item.vencimento}</span>
-                  </div>
-                  <div className="expense-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <span className="expense-value" style={{ color: '#ef4444' }}>
-                      {formatCurrency(item.valor)}
-                    </span>
-                    <div className="action-menu-container">
-                      <button onClick={() => setMenuAbertoId(prev => prev === item.id ? null : item.id)} className="action-menu-trigger" title="Opções">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
-                        </svg>
-                      </button>
-                      {menuAbertoId === item.id && (
-                        <div className={`action-menu ${openUp ? 'up' : ''}`}>
-                          <button onClick={() => { handleEdit(item); setMenuAbertoId(null); }} className="action-menu-button" style={{ borderBottom: '1px solid var(--border-color)' }}>Editar</button>
-                          <button onClick={() => { handleDelete(item.id); setMenuAbertoId(null); }} className="action-menu-button" style={{ color: 'var(--error-color)' }}>Excluir</button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              )})}
-            </ul>
-            )}
+        <button onClick={abrirModalNovo} className="btn-primary" style={{ padding: '0.55rem 1rem' }}>
+          <IconPlus size={16} /> Nova Despesa Fixa
+        </button>
+      </div>
+
+      {/* Cartões de Indicador */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="modern-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              Total Comprometido
+            </span>
+            <div className="currency-val" style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--error-color)', marginTop: '0.2rem' }}>
+              {formatCurrency(totalFixas)}
+            </div>
+          </div>
+          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--error-light)', color: 'var(--error-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <IconLock size={20} />
+          </div>
+        </div>
+
+        <div className="modern-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              Contas Cadastradas
+            </span>
+            <div className="tabular-nums" style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.2rem' }}>
+              {despesas.length}
+            </div>
+          </div>
+          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--primary-light)', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <IconCalendar size={20} />
+          </div>
+        </div>
+
+        <div className="modern-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              Média por Conta
+            </span>
+            <div className="currency-val" style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.2rem' }}>
+              {formatCurrency(mediaPorConta)}
+            </div>
+          </div>
+          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--bg-subtle)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <IconLock size={20} />
           </div>
         </div>
       </div>
-    </main>
+
+      {/* Lista de Contas */}
+      <div className="modern-card" style={{ padding: '1.25rem' }}>
+        <h3 style={{ fontSize: '1.05rem', marginBottom: '1rem' }}>
+          Contas do Mês (Ordenadas por vencimento)
+        </h3>
+
+        {despesasOrdenadas.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
+            <p style={{ marginBottom: '1rem' }}>Nenhuma despesa fixa cadastrada ainda.</p>
+            <button onClick={abrirModalNovo} className="btn-secondary">
+              <IconPlus size={15} /> Cadastrar primeira conta fixa
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {despesasOrdenadas.map(item => (
+              <div 
+                key={item.id} 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.75rem 1rem',
+                  background: 'var(--bg-subtle)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-color)',
+                  transition: 'border-color 0.15s ease'
+                }}
+              >
+                {/* Dia do Vencimento */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                  <div style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '8px',
+                    background: 'var(--card-bg)',
+                    border: '1px solid var(--border-color)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, lineHeight: 1 }}>Dia</span>
+                    <span className="tabular-nums" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-color)', lineHeight: 1 }}>{item.vencimento}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                    <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{item.nome}</strong>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      Cobrança mensal recorrente
+                    </span>
+                  </div>
+                </div>
+
+                {/* Valor & Ações */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                  <strong className="currency-val" style={{ fontSize: '1.05rem', color: 'var(--error-color)' }}>
+                    {formatCurrency(item.valor)}
+                  </strong>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <button 
+                      onClick={() => abrirModalEditar(item)} 
+                      className="btn-secondary" 
+                      style={{ padding: '0.35rem 0.6rem', fontSize: '0.78rem' }}
+                      title="Editar"
+                    >
+                      <IconEdit size={14} /> Editar
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(item.id)} 
+                      className="btn-secondary" 
+                      style={{ padding: '0.35rem 0.6rem', fontSize: '0.78rem', color: 'var(--error-color)' }}
+                      title="Excluir"
+                    >
+                      <IconTrash size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal de Cadastro / Edição */}
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={fecharModal}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: '1.15rem', margin: 0 }}>
+                {editandoId ? 'Editar Despesa Fixa' : 'Nova Despesa Fixa'}
+              </h3>
+              <button onClick={fecharModal} className="nav-icon-btn" style={{ width: '30px', height: '30px' }}>
+                <IconClose size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="modal-body grid">
+              <div>
+                <label htmlFor="nome">Nome / Descrição</label>
+                <input 
+                  id="nome"
+                  type="text" 
+                  placeholder="Ex: Aluguel, Internet, Netflix..." 
+                  value={nome} 
+                  onChange={(e) => setNome(e.target.value)} 
+                  required 
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label htmlFor="valor">Valor Mensal (R$)</label>
+                <input 
+                  id="valor"
+                  type="number" 
+                  step="0.01" 
+                  placeholder="0.00" 
+                  value={valor} 
+                  onChange={(e) => setValor(e.target.value)} 
+                  required 
+                />
+              </div>
+
+              <div>
+                <label htmlFor="vencimento">Dia do Vencimento (1 a 31)</label>
+                <input 
+                  id="vencimento"
+                  type="number" 
+                  min="1" 
+                  max="31" 
+                  placeholder="Ex: 10" 
+                  value={vencimento} 
+                  onChange={(e) => setVencimento(e.target.value)} 
+                  required 
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button type="submit" className="btn-primary" style={{ flex: 2 }}>
+                  {editandoId ? 'Salvar Alterações' : 'Cadastrar Despesa'}
+                </button>
+                <button type="button" onClick={fecharModal} className="btn-secondary" style={{ flex: 1 }}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

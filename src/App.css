@@ -1,744 +1,920 @@
 /* Importando fonte moderna do Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
+  --font-main: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --navbar-height: 54px;
+  --footer-height: 24px;
+
   /* Variáveis Padrão (Light Mode) */
   --primary-color: #2563eb;
   --primary-hover: #1d4ed8;
-  --bg-color: #f3f4f6;
+  --primary-light: #eff6ff;
+  --primary-glow: rgba(37, 99, 235, 0.15);
+
+  --bg-color: #f8fafc;
+  --bg-subtle: #f1f5f9;
   --card-bg: #ffffff;
-  --text-main: #1f2937;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --error-color: #ef4444;
+  --card-bg-elevated: #ffffff;
+  
+  --text-main: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  
   --success-color: #10b981;
-  --input-bg: #f9fafb;
-  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --success-light: #ecfdf5;
+  --success-border: rgba(16, 185, 129, 0.2);
+  
+  --error-color: #f43f5e;
+  --error-light: #fff1f2;
+  --error-border: rgba(244, 63, 94, 0.2);
+  
+  --warning-color: #f59e0b;
+  --warning-light: #fffbeb;
+  
+  --accent-purple: #8b5cf6;
+  --accent-purple-light: #f5f3ff;
+
+  --input-bg: #f8fafc;
+  --input-border: #cbd5e1;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.06);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 }
 
 /* Variáveis Dark Mode */
 [data-theme="dark"] {
   --primary-color: #3b82f6;
   --primary-hover: #60a5fa;
-  --bg-color: #111827;      /* Fundo bem escuro */
-  --card-bg: #1f2937;       /* Cards cinza escuro */
-  --text-main: #f9fafb;     /* Texto quase branco */
-  --text-secondary: #9ca3af;
-  --border-color: #374151;
-  --error-color: #f87171;
-  --input-bg: #374151;
-  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --primary-light: rgba(59, 130, 246, 0.12);
+  --primary-glow: rgba(59, 130, 246, 0.25);
+
+  --bg-color: #090d16;
+  --bg-subtle: #101726;
+  --card-bg: #141c2e;
+  --card-bg-elevated: #1a243b;
+  
+  --text-main: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --border-color: #1f2c44;
+  --border-light: #162136;
+  
+  --success-color: #34d399;
+  --success-light: rgba(16, 185, 129, 0.14);
+  --success-border: rgba(52, 211, 153, 0.25);
+  
+  --error-color: #fb7185;
+  --error-light: rgba(244, 63, 94, 0.14);
+  --error-border: rgba(251, 113, 133, 0.25);
+  
+  --warning-color: #fbbf24;
+  --warning-light: rgba(245, 158, 11, 0.14);
+  
+  --accent-purple: #a78bfa;
+  --accent-purple-light: rgba(139, 92, 246, 0.14);
+
+  --input-bg: #0d1320;
+  --input-border: #23324d;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.55), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.65), 0 8px 10px -6px rgba(0, 0, 0, 0.45);
 }
 
 * {
   box-sizing: border-box;
-  /* Estilos de scrollbar para Firefox */
-  scrollbar-width: none;
-}
-
-html {
-  zoom: 0.9;
-}
-
-body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  font-family: var(--font-main);
+  background-color: var(--bg-color);
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
-  -webkit-text-size-adjust: 100%; /* Bloqueia o Android de inflar as fontes do nada */
-  text-size-adjust: 100%;
-  height: calc(100vh / 0.9); /* Compensa o zoom de 0.9 para preencher a tela */
-  overflow: hidden; /* Remove barra de rolagem da janela */
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.App {
-  text-align: center;
+/* Números tabulares para valores monetários e financeiros */
+.currency-val, .tabular-nums, .total-value {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
+/* Layout raiz */
 .app-layout {
   display: flex;
   flex-direction: column;
-  height: calc(100vh / 0.9); /* Compensa o zoom de 0.9 para grudar o rodapé */
-  overflow: hidden;
   background-color: var(--bg-color);
   color: var(--text-main);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
 }
 
-/* --- Estilos do Loader --- */
-.loader-container {
+/* Scrollbar sutil e minimalista para sublistas internas */
+.custom-scroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 9999px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* --- REGRAS PARA COMPUTADOR (TELA FIXA SEM ROLAGEM GERAL NO DESKTOP) --- */
+@media (min-width: 1025px) {
+  html, body, #root {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+
+  .app-layout {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .main-content {
+    flex: 1;
+    height: calc(100vh - var(--navbar-height) - var(--footer-height));
+    max-height: calc(100vh - var(--navbar-height) - var(--footer-height));
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0.75rem 1.75rem 1.75rem;
+    box-sizing: border-box;
+  }
+
+  .container-fit {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding-bottom: 0.75rem;
+  }
+
+  /* Grid do Dashboard em tela cheia */
+  .dashboard-main-grid-fixed {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 0.85rem;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .dashboard-section-fixed {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-height: 0;
+  }
+}
+
+/* --- REGRAS PARA CELULAR E TABLET (ROLAGEM FLUIDA NATURAL) --- */
+@media (max-width: 1024px) {
+  html, body, #root, .app-layout {
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .main-content {
+    width: 100%;
+    padding: 1rem 1rem 2rem;
+    overflow-y: auto;
+  }
+
+  .dashboard-main-grid-fixed {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .dashboard-section-fixed {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}
+
+/* Container padrão para páginas centrais */
+.container {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: calc(100vh / 0.9); /* Compensa o zoom de 0.9 */
-  background-color: var(--bg-color);
-  color: var(--text-secondary);
 }
 
-.loader {
-  border: 4px solid var(--border-color);
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-.main-content {
-  flex: 1; /* Faz o conteúdo ocupar o espaço disponível, empurrando o footer */
-  width: 100%;
-  overflow-y: auto; /* Permite rolagem apenas aqui dentro se necessário */
-  -webkit-overflow-scrolling: touch; /* Habilita a rolagem suave por toque nativa do iOS */
-  min-height: 0; /* Corrige o bug do Safari/iOS que impedia a rolagem em layouts Flexbox */
-  padding: 1rem; /* Espaçamento interno para não colar nas bordas em telas pequenas */
-  display: flex; /* Habilita o Flexbox para centralizar os filhos */
-  flex-direction: column; /* Garante a direção correta do fluxo */
-}
-
-.nav{
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1rem 2rem;
+/* Container padrão para formulários focados */
+.container-focused {
+  max-width: 520px;
+  margin: 1.5rem auto;
   background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: background-color 0.3s ease;
-}
-
-/* Estilo para o Logo na barra de navegação */
-.nav-logo {
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: var(--primary-color) !important; /* Força a cor do logo */
-  margin-right: auto; /* Empurra os outros itens para a direita se houver espaço, ou separa do grupo */
-}
-
-/* Estilo geral para links dentro da navegação */
-.nav a {
-  text-decoration: none;
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: color 0.2s ease;
-}
-
-.nav a:hover {
-  color: var(--primary-color);
-}
-
-/* Estilo específico para o botão "Entrar" na navegação */
-.nav .nav-btn-primary {
-  background-color: var(--primary-color);
-  color: #fff !important;
-  padding: 0.5rem 1.25rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  margin-left: auto; /* Garante que o botão fique na extrema direita */
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
-}
-
-.nav .nav-btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
-}
-
-.theme-btn {
-  margin-left: auto;
-  background: transparent;
-  color: var(--text-main);
   border: 1px solid var(--border-color);
-  padding: 0.5rem 1rem;
-  width: auto;
-  margin-top: 0;
-  box-shadow: none;
-}
-.theme-btn:hover {
-  background-color: var(--bg-color);
-  transform: translateY(0);
-  box-shadow: none;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
 }
 
-.container {
-  max-width: 480px; /* Largura focada para formulários padrão */
-  margin: auto; /* O segredo: 'auto' dentro de um flex container centraliza V e H */
-  width: 100%; /* Garante que o card ocupe a largura disponível até o max-width */
-  padding: 2.5rem; /* Padding original para não estragar as outras telas */
+/* Cards modernos com acabamento refinado e contenção rígida contra vazamento */
+.modern-card {
   background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  transition: background-color 0.3s ease;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.15rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  position: relative;
 }
 
-h2 {
-  font-weight: 700;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem; /* Voltou ao normal */
+/* --- Tipografia Global --- */
+h1, h2, h3, h4, h5, h6 {
   color: var(--text-main);
-  text-align: center;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
+p {
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* --- Formulários & Inputs --- */
 .grid {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem; /* Voltou ao normal */
+  gap: 1rem;
 }
 
 label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem; /* Voltou ao normal */
-  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   color: var(--text-main);
 }
 
-input {
+input, select.input-field, textarea {
   width: 100%;
-  padding: 0.75rem 1rem; /* Voltou ao normal */
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
   background-color: var(--input-bg);
   color: var(--text-main);
-  font-size: 1rem;
-  transition: all 0.2s ease-in-out;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
 }
 
-/* Estilo para o Select igual ao input */
-select.input-field {
-  width: 100%;
-  padding: 0.75rem 1rem; /* Voltou ao normal */
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  background-color: var(--input-bg);
-  color: var(--text-main);
-  font-size: 1rem;
-}
-
-/* Melhoria de Acessibilidade: usa focus-visible para destacar apenas na navegação por teclado */
-input:focus-visible, select.input-field:focus-visible {
+input:focus, select.input-field:focus, textarea:focus {
   outline: none;
   background-color: var(--card-bg);
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
-button {
-  width: 100%;
-  padding: 0.875rem; /* Voltou ao normal */
-  background-color: var(--primary-color);
-  color: white;
+select.input-field {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 0 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+  padding-right: 2.2rem;
+}
+
+/* --- Botões Modernos --- */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+  color: #ffffff;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1.1rem;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.88rem;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: 1rem; /* Voltou ao normal */
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
-  letter-spacing: 0.025em;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  transition: all 0.2s ease;
+  text-decoration: none;
 }
 
-button:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4), 0 4px 6px -2px rgba(37, 99, 235, 0.2);
+.btn-primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
 }
 
-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* --- Estilos Exclusivos APENAS para a Aba Cofrinho --- */
-.container.cofrinho-container {
-  max-width: 768px;
-  padding: 1rem;
-}
-.container.cofrinho-container h2 {
-  margin-bottom: 0.5rem;
-}
-.container.cofrinho-container .grid {
-  gap: 0.5rem;
-}
-.container.cofrinho-container label {
-  margin-bottom: 0.15rem;
-}
-.container.cofrinho-container input,
-.container.cofrinho-container select.input-field {
-  padding: 0.5rem 1rem;
-}
-.container.cofrinho-container button {
-  padding: 0.6rem;
-  margin-top: 0.5rem;
-}
-
-.error {
-  background-color: #fef2f2;
-  color: var(--error-color);
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  border: 1px solid #fecaca;
-  text-align: center;
-}
-
-/* --- Estilos do Dashboard Financeiro --- */
-.dashboard-card {
-  background: var(--bg-color);
-  padding: 1.5rem;
-  border-radius: 12px;
-  text-align: center;
-  border: 1px solid var(--border-color); /* Removida borda explícita para usar a cor variável */
-  box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.05);
-}
-
-/* --- Header do Dashboard --- */
-.dashboard-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+.btn-secondary {
+  display: inline-flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  width: 100%;
-}
-
-.total-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--error-color); /* Vermelho pois é gasto */
-  margin: 0;
-}
-
-.chart-container {
-  position: relative;
-  height: 250px; /* Altura reduzida para caber melhor */
-  width: 100%;
-  display: flex;
   justify-content: center;
-  max-width: 100%;
-}
-
-/* Layout lado a lado para o Dashboard */
-.dashboard-row {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  flex-wrap: wrap; /* Quebra linha em celular */
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.dashboard-row > * {
-  flex: 1;
-  min-width: 250px; /* Tamanho mínimo antes de quebrar linha */
-}
-
-/* --- Estilos da Lista de Histórico --- */
-.expense-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.expense-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
+  gap: 0.45rem;
   background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 0.75rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.95rem;
+  font-weight: 600;
+  font-size: 0.86rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
 }
 
-.expense-info { display: flex; flex-direction: column; gap: 0.25rem; text-align: left; }
-.expense-date { font-size: 0.85rem; color: var(--text-secondary); }
-.expense-value { font-weight: 600; color: var(--error-color); margin-right: 1rem; }
-
-.btn-delete {
-  width: auto;
-  padding: 0.5rem;
-  margin: 0;
-  background: transparent;
-  color: #ef4444;
-  box-shadow: none;
-}
-.btn-delete:hover { background: #fee2e2; transform: none; box-shadow: none; }
-
-/* --- Footer Profissional --- */
-.footer {
-  text-align: center;
-  padding: 0.5rem 1rem; /* Padding reduzido para deixar o rodapé mais baixinho */
-  background-color: var(--card-bg);
-  border-top: 1px solid var(--border-color);
-  margin-top: auto;
+.btn-secondary:hover {
+  background: var(--bg-subtle);
+  border-color: var(--border-color);
 }
 
-.footer p {
-  margin: 0.25rem 0;
-  color: var(--text-secondary);
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, var(--error-color) 0%, #e11d48 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.95rem;
+  font-weight: 600;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.footer strong {
+.btn-success {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.95rem;
+  font-weight: 600;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* --- Badges --- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.badge-success {
+  background-color: var(--success-light);
+  color: var(--success-color);
+  border: 1px solid var(--success-border);
+}
+
+.badge-danger {
+  background-color: var(--error-light);
+  color: var(--error-color);
+  border: 1px solid var(--error-border);
+}
+
+.badge-info {
+  background-color: var(--primary-light);
   color: var(--primary-color);
 }
 
-.footer-role { font-size: 0.9rem; font-weight: 500; }
-.footer-copy { font-size: 0.8rem; opacity: 0.8; margin-top: 0.5rem !important;}
+.badge-neutral {
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
 
-/* --- Estilos do Menu de Ações (3 pontinhos) --- */
+/* --- Grid Compacto de KPIs (Dashboard) --- */
+.dashboard-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.kpi-card.kpi-balance::after { background: linear-gradient(90deg, #3b82f6, #6366f1); }
+.kpi-card.kpi-income::after { background: linear-gradient(90deg, #10b981, #34d399); }
+.kpi-card.kpi-expense::after { background: linear-gradient(90deg, #f43f5e, #fb7185); }
+.kpi-card.kpi-savings::after { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.kpi-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kpi-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpi-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  margin-bottom: 0.15rem;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+.kpi-footer {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* --- Barras de Progresso --- */
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* --- Lista de Transações / Histórico --- */
+.tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  list-style: none;
+}
+
+.tx-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.8rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.tx-item:hover {
+  background: var(--bg-subtle);
+}
+
+.tx-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 0.65rem;
+}
+
+.tx-details {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.tx-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tx-meta {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.1rem;
+}
+
+.tx-amount {
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-right: 0.45rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.tx-amount.income { color: var(--success-color); }
+.tx-amount.expense { color: var(--error-color); }
+
+/* --- Modais & Overlays Modernos --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-body {
+  padding: 1.25rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Menu de Ações (3 pontinhos) */
 .action-menu-container {
   position: relative;
+}
+
+.action-menu-trigger {
+  background: transparent;
+  border: none;
+  padding: 0.3rem;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-menu-trigger:hover {
+  color: var(--text-main);
+  background-color: var(--bg-subtle);
 }
 
 .action-menu {
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 0.5rem;
-  background: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  z-index: 10;
-  width: 120px;
-  overflow: hidden;
+  margin-top: 0.3rem;
+  background: var(--card-bg-elevated);
   border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  width: 130px;
+  overflow: hidden;
 }
 
 .action-menu.up {
   top: auto;
   bottom: 100%;
   margin-top: 0;
-  margin-bottom: 0.5rem;
-}
-
-.action-menu-trigger {
-  background: none;
-  border: none;
-  padding: 0.2rem;
-  margin: 0;
-  cursor: pointer;
-  color: var(--text-secondary);
-  box-shadow: none;
-  width: auto;
-  margin-top: 0;
-  line-height: 1; /* Alinha o SVG verticalmente */
-}
-
-.action-menu-trigger:hover {
-  background-color: var(--bg-color);
-  transform: none;
-  box-shadow: none;
-}
-
-.action-menu-trigger:focus, .action-menu-trigger:focus-visible {
-  box-shadow: none;
-  outline: none;
+  margin-bottom: 0.3rem;
 }
 
 .action-menu-button {
   width: 100%;
-  padding: 0.8rem 1rem;
-  margin: 0;
-  background: none;
+  padding: 0.55rem 0.85rem;
   border: none;
+  background: none;
   text-align: left;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.825rem;
   font-weight: 500;
   color: var(--text-main);
-  display: block;
-  box-shadow: none;
-  letter-spacing: normal;
-  border-radius: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .action-menu-button:hover {
-  background-color: var(--bg-color);
-  transform: none;
-  box-shadow: none;
-}
-/* --- Estilos da Barra de Rolagem Moderna (Webkit) --- */
-::-webkit-scrollbar {
-  display: none;
+  background-color: var(--bg-subtle);
 }
 
-/* Fundo da barra de rolagem (o "trilho") */
-::-webkit-scrollbar-track {
-  display: none;
+/* Footer super fino, discreto e descolado do fundo */
+.footer {
+  text-align: center;
+  padding: 0.25rem 1rem;
+  background-color: transparent;
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  height: var(--footer-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
-/* O "arrastador" da barra de rolagem (o "thumb") */
-::-webkit-scrollbar-thumb {
-  display: none;
+.footer strong {
+  color: var(--primary-color);
 }
 
-/* Arrastador ao passar o mouse */
-::-webkit-scrollbar-thumb:hover {
-  display: none;
+/* --- ESTILOS DE IMPRESSÃO / PDF PROFISSIONAL --- */
+.print-only {
+  display: none !important;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 12mm 12mm 14mm 12mm;
 }
 
 @media print {
-  /* Evita que o texto suma (branco no branco) caso o usuário exporte no modo escuro */
-  :root, [data-theme="dark"] {
-    --text-main: #000000 !important;
-    --text-secondary: #333333 !important;
-    --text-color: #000000 !important;
+  /* 1. Reset de variáveis para impressão executiva clara (mesmo em Dark Mode) */
+  :root, [data-theme="dark"], body {
     --bg-color: #ffffff !important;
+    --bg-subtle: #f8fafc !important;
     --card-bg: #ffffff !important;
-    --border-color: #cccccc !important;
+    --card-bg-elevated: #ffffff !important;
+    --text-main: #0f172a !important;
+    --text-secondary: #475569 !important;
+    --text-muted: #64748b !important;
+    --border-color: #e2e8f0 !important;
+    --border-light: #f1f5f9 !important;
   }
 
-  /* Força a impressão de cores de fundo para TODOS os elementos */
+  /* 2. Ocultar todos os controles interativos, barras e menus */
+  .no-print,
+  .modern-navbar,
+  .footer,
+  header,
+  nav,
+  button,
+  a.btn-secondary,
+  a.btn-primary,
+  .action-menu,
+  .action-menu-container,
+  .action-menu-button,
+  .calendar-nav-btn {
+    display: none !important;
+  }
+
+  /* 3. Exibir elementos exclusivos para impressão */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Quebra de página deliberada para relatórios organizados em páginas distintas */
+  .print-page-break {
+    break-before: page !important;
+    page-break-before: always !important;
+    margin-top: 0 !important;
+    padding-top: 0.25rem !important;
+  }
+
+  .print-page-footer {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* 4. Reset total de alturas para que o conteúdo flua sem cortes de página */
+  html, body, #root, .app-layout, .main-content, .container-fit {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 5. Forçar impressão exata de cores */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* --- Reset Geral e Layout da Página --- */
-  body {
-    font-size: 10pt; /* Reduz o tamanho da fonte base para impressão, ajustando unidades 'rem' */
-    background: #fff !important;
-    color: #000 !important;
+  /* 6. Cards elegantes e limpos para folha de papel */
+  .modern-card, .kpi-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    color: #0f172a !important;
   }
 
-  /* Esconde elementos que não devem aparecer na impressão */
-  .no-print, .footer, nav {
+  /* 7. Textos e números nítidos */
+  .currency-val, .kpi-value, strong, h1, h2, h3, h4, span, p {
+    color: #0f172a !important;
+  }
+
+  .kpi-income .currency-val,
+  .currency-val.income {
+    color: #059669 !important;
+  }
+  .kpi-expense .currency-val,
+  .currency-val.expense {
+    color: #e11d48 !important;
+  }
+
+  /* 8. Distribuição das colunas no papel A4 */
+  .dashboard-kpi-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .dashboard-main-grid-fixed {
+    display: grid !important;
+    grid-template-columns: 1.2fr 1fr !important;
+    gap: 1rem !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  .dashboard-section-fixed {
+    gap: 1rem !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  /* 9. Gráfico perfeitamente circular (1:1) via SVG vetorial no PDF */
+  .chart-doughnut-wrapper {
     display: none !important;
   }
 
-  /* Reseta o layout principal para um fluxo de bloco simples */
-  #root, .app-layout, .main-content {
-    display: block !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-    background: transparent !important;
-    overflow: visible !important; /* Permite que o conteúdo flua na página de impressão */
-    height: auto !important;
-  }
-
-  /* Ajusta o container principal para impressão com margens de página */
-  .container {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 2cm 1.5cm !important; /* Adiciona margens de impressão (padrão A4) */
-    margin: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-    background: none !important;
-  }
-
-  /* --- Ajustes Específicos do Dashboard --- */
-
-  h2 {
-    font-size: 16pt; /* Tamanho mais apropriado para título de relatório */
-    margin-bottom: 1.5cm;
-    text-align: center;
-  }
-
-  /* Força o layout de colunas a ficar em bloco (uma embaixo da outra) */
-  .dashboard-layout-print {
-    display: block !important;
-    gap: 0 !important;
-  }
-
-  .dashboard-column-print {
-    width: 100% !important;
-    display: block !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin-bottom: 1.5rem;
-    page-break-inside: avoid; /* Evita quebrar colunas no meio da página */
-    background: transparent !important;
-  }
-
-  /* Ajusta os cards */
-  .dashboard-card {
-    border: 1px solid #ccc !important;
-    box-shadow: none !important;
-    padding: 0.8rem !important;
-    background: #f9f9f9 !important;
-  }
-
-  /* Reduz o tamanho das fontes grandes dos cards */
-  .total-value {
-    font-size: 1.8rem !important; /* Tamanho reduzido para não ficar exagerado */
-  }
-
-  /* Força a impressão das barras de progresso */
-  .progress-bar-track {
-    background-color: #e0e0e0 !important; /* Cor de fundo para a trilha da barra */
-    border-color: #c0c0c0 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .progress-bar-fill {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Ajusta o container do gráfico para não ultrapassar a página */
-  .chart-container {
-    width: 100% !important; /* Ocupa a largura total disponível */
-    max-width: 100% !important;
-    height: 200px !important; /* Altura um pouco menor para economizar espaço */
-    margin-bottom: 1rem;
-  }
-
-  /* Ajusta a legenda customizada e os quadrados de cor */
-  .custom-legend, .legend-item {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .legend-color-square {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    border: 1px solid #ccc !important; /* Adiciona uma borda para visibilidade em fundos claros */
-  }
-
-  /* Ajusta a legenda customizada */
-  .custom-legend { font-size: 9pt; }
-  .custom-legend h3 { font-size: 12pt; }
-
-  /* Força a impressão de cores de fundo e texto */
-  .chart-container, .total-value, canvas, .dashboard-card {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-}
-
-/* --- Responsividade da Barra de Navegação --- */
-@media (max-width: 1200px) {
-  /* 0. Desativa o zoom customizado no mobile para evitar bugs de cálculo do Android */
-  html, body, #root { 
-    zoom: 1 !important; 
-    width: 100% !important;
-    height: auto !important; /* Deixa o iOS calcular a altura naturalmente */
-    min-height: 100dvh !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important; /* DESTRAVA O SCROLL NATIVO DO CELULAR */
-    position: relative !important;
-    background-color: var(--bg-color) !important; /* Pinta a "borda" SafeArea com a cor do seu app */
-  }
-
-  .app-layout { 
-    width: 100% !important;
-    height: auto !important;
-    min-height: 100dvh !important;
-    position: relative !important;
+  .chart-doughnut-svg-print {
     display: flex !important;
-    flex-direction: column !important;
-    overflow: visible !important;
-  }
-
-  .main-content {
-    flex: 1 !important; 
-    height: auto !important;
-    overflow: visible !important; /* O corpo da página rola por inteiro */
-  }
-
-  /* 1. Remove o excesso de tamanho no topo, ajusta espaçamento interno e cobre a Safe Area do iOS */
-  .nav {
-    padding-top: calc(1rem + env(safe-area-inset-top, 0px)) !important;
-    padding-bottom: 1rem !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-
-  /* 1.1 Preenche a área do Home Indicator (barra de gestos) no rodapé do iOS */
-  .footer {
-    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
-  }
-}
-
-/* --- Responsividade do Dashboard para Celulares e Tablets Menores --- */
-@media (max-width: 768px) {
-
-  /* 2. Título Centralizado e Seletor de Meses Abaixo do Título */
-  h2 {
-    text-align: center !important;
-    margin-bottom: 0.5rem;
-    width: 100%;
-  }
-  
-  /* 2.1 Alinha os itens do cabeçalho do Dashboard no mobile */
-  .dashboard-header {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1.2rem !important;
-  }
-  /* Título no topo */
-  .dashboard-header > div:nth-child(2) {
-    order: -1;
-  }
-  /* Calendário no meio */
-  .dashboard-header > div:nth-child(1) {
-    order: 0;
-  }
-  /* Botões embaixo */
-  .dashboard-header > div:nth-child(3) {
-    order: 1;
+    align-items: center !important;
     justify-content: center !important;
+    width: 170px !important;
+    height: 170px !important;
+    min-width: 170px !important;
+    min-height: 170px !important;
+    margin: 0 auto !important;
+    flex-shrink: 0 !important;
   }
 
-  /* 3. Gráfico Responsivo (Evita corte lateral) */
-  .chart-container {
-    overflow-x: auto !important; /* Permite arrastar o gráfico pro lado se for muito largo */
-    -webkit-overflow-scrolling: touch; /* Arrasto suave nativo do Android/iOS */
-    justify-content: flex-start !important; 
-    padding-bottom: 0.5rem;
-  }
-  
-  .chart-container canvas, 
-  .chart-container .recharts-wrapper {
-    max-width: 100% !important; /* Força o gráfico a tentar caber na tela primeiro */
+  .chart-doughnut-svg-print svg {
+    width: 165px !important;
+    height: 165px !important;
+    display: block !important;
+    margin: 0 auto !important;
   }
 
-  /* 4. Cards do Dashboard em Coluna (Um embaixo do outro) */
-  .dashboard-row {
-    flex-direction: column;
-    gap: 1rem;
+  /* 10. Cards internos limpos e legíveis */
+  .print-category-card,
+  .print-fixed-item {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
   }
 
-  /* 5. Remove a borda e expande o layout para aproveitar a tela toda no celular/app nativo */
-  .main-content,
-  .native-mobile-app .main-content {
-    padding-left: 0.2rem !important;
-    padding-right: 0.2rem !important;
+  /* 11. Ocultar itens redundantes na folha */
+  .print-hide {
+    display: none !important;
   }
 
-  .container,
-  .native-mobile-app .container {
-    width: auto !important;
-    max-width: 100% !important;
-    border: none !important;
-    box-shadow: none !important;
-    margin: 0 0.5rem !important; /* Desgruda da tela só o suficiente para a curva do Android poder aparecer */
-    border-radius: 16px !important; /* Força a curva */
-    overflow: hidden; /* Garante o corte arredondado do fundo */
-    padding-left: 1.2rem !important;
-    padding-right: 1.2rem !important;
+  /* 12. Rolar sem cortes de conteúdo */
+  .custom-scroll {
+    overflow: visible !important;
+    max-height: none !important;
   }
-}
 
-/* --- Melhoria de Acessibilidade (A11y) --- */
-/* Remove transições para usuários que ativaram "Reduzir Movimento" no sistema operacional */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  /* 13. Tabela de histórico completa e paginação limpa */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  /* Impede que o rodapé com os totais repita no meio de páginas intermediárias */
+  tfoot {
+    display: table-row-group !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
