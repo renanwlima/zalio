@@ -791,79 +791,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Sub-grid Dupla Lado a Lado: Orçamento & Cofrinho */}
-          <div className="print-budget-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', flexShrink: 0 }}>
-            {/* Card: Termômetro do Orçamento */}
-            <div className="modern-card" style={{ padding: '0.75rem 1rem' }}>
-              <div className="budget-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', gap: '0.35rem' }}>
-                <span className="budget-title" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
-                  <IconCreditCard size={14} color="var(--primary-color)" /> Orçamento
-                </span>
-                <span className="budget-values currency-val" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', textAlign: 'right' }}>
-                  {formatCurrency(totalGasto)} <span style={{ opacity: 0.7 }}>/ {formatCurrency(totalEntradas)}</span>
-                </span>
-              </div>
-
-              <div className="progress-track" style={{ height: '6px' }}>
-                <div 
-                  className="progress-fill" 
-                  style={{
-                    width: `${budgetAnimPerc}%`,
-                    background: totalGasto > totalEntradas && totalEntradas > 0 
-                      ? 'var(--error-color)' 
-                      : budgetAnimPerc > 80 
-                      ? 'var(--warning-color)' 
-                      : 'var(--success-color)'
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.38rem', fontSize: '0.75rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>
-                  {totalGasto > totalEntradas && totalEntradas > 0 ? (
-                    <strong style={{ color: 'var(--error-color)' }}>Déficit no mês</strong>
-                  ) : (
-                    <span>Livre: <strong style={{ color: 'var(--success-color)' }}>{formatCurrency(Math.max(0, saldoLiquido))}</strong></span>
-                  )}
-                </span>
-                <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
-                  {Math.round(budgetAnimPerc)}%
-                </span>
-              </div>
-            </div>
-
-            {/* Card: Meu Cofrinho Resumo */}
-            <div className="modern-card" style={{ padding: '0.75rem 1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <span style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <IconPiggyBank size={14} color="var(--accent-purple)" /> Cofrinhos
-                </span>
-                <Link to="/cofrinho" className="no-print" style={{ fontSize: '0.72rem', color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 600 }}>
-                  Acessar →
-                </Link>
-              </div>
-
-              <div className="progress-track" style={{ height: '6px' }}>
-                <div 
-                  className="progress-fill" 
-                  style={{
-                    width: `${cofrinhoAnimPerc}%`,
-                    background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)'
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.38rem', fontSize: '0.75rem' }}>
-                <span className="currency-val" style={{ color: 'var(--text-secondary)' }}>
-                  Total: <strong style={{ color: 'var(--text-main)' }}>{formatCurrency(cofrinhoTotal.saldo)}</strong>
-                </span>
-                <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
-                  {Math.round(cofrinhoAnimPerc)}%
-                </span>
-              </div>
-            </div>
-          </div>
-
         </div>
 
         {/* COLUNA DIREITA: PRÓXIMOS VENCIMENTOS, DESTAQUES E FEED */}
@@ -1056,6 +983,79 @@ export default function Dashboard() {
             )}
           </div>
 
+        </div>
+      </div>
+
+      {/* --- SUB-GRID DUPLA LADO A LADO: ORÇAMENTO & COFRINHO (PREENCHE A LARGURA DA PÁGINA, 50% CADA) --- */}
+      <div className="print-budget-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', flexShrink: 0, marginTop: '0.85rem' }}>
+        {/* Card: Termômetro do Orçamento */}
+        <div className="modern-card" style={{ padding: '0.75rem 1rem' }}>
+          <div className="budget-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', gap: '0.35rem' }}>
+            <span className="budget-title" style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
+              <IconCreditCard size={14} color="var(--primary-color)" /> Orçamento
+            </span>
+            <span className="budget-values currency-val" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', textAlign: 'right' }}>
+              {formatCurrency(totalGasto)} <span style={{ opacity: 0.7 }}>/ {formatCurrency(totalEntradas)}</span>
+            </span>
+          </div>
+
+          <div className="progress-track" style={{ height: '6px' }}>
+            <div 
+              className="progress-fill" 
+              style={{
+                width: `${budgetAnimPerc}%`,
+                background: totalGasto > totalEntradas && totalEntradas > 0 
+                  ? 'var(--error-color)' 
+                  : budgetAnimPerc > 80 
+                  ? 'var(--warning-color)' 
+                  : 'var(--success-color)'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.38rem', fontSize: '0.75rem' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>
+              {totalGasto > totalEntradas && totalEntradas > 0 ? (
+                <strong style={{ color: 'var(--error-color)' }}>Déficit no mês</strong>
+              ) : (
+                <span>Livre: <strong style={{ color: 'var(--success-color)' }}>{formatCurrency(Math.max(0, saldoLiquido))}</strong></span>
+              )}
+            </span>
+            <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
+              {Math.round(budgetAnimPerc)}%
+            </span>
+          </div>
+        </div>
+
+        {/* Card: Meu Cofrinho Resumo */}
+        <div className="modern-card" style={{ padding: '0.75rem 1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+            <span style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <IconPiggyBank size={14} color="var(--accent-purple)" /> Cofrinhos
+            </span>
+            <Link to="/cofrinho" className="no-print" style={{ fontSize: '0.72rem', color: 'var(--primary-color)', textDecoration: 'none', fontWeight: 600 }}>
+              Acessar →
+            </Link>
+          </div>
+
+          <div className="progress-track" style={{ height: '6px' }}>
+            <div 
+              className="progress-fill" 
+              style={{
+                width: `${cofrinhoAnimPerc}%`,
+                background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.38rem', fontSize: '0.75rem' }}>
+            <span className="currency-val" style={{ color: 'var(--text-secondary)' }}>
+              Total: <strong style={{ color: 'var(--text-main)' }}>{formatCurrency(cofrinhoTotal.saldo)}</strong>
+            </span>
+            <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
+              {Math.round(cofrinhoAnimPerc)}%
+            </span>
+          </div>
         </div>
       </div>
 
