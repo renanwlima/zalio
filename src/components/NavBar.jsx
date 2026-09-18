@@ -48,10 +48,7 @@ export default function NavBar({ theme, toggleTheme }) {
             position: sticky;
             top: 0;
             z-index: 100;
-            height: var(--navbar-height);
-            background: ${theme === 'dark' ? 'rgba(14, 20, 32, 0.92)' : 'rgba(255, 255, 255, 0.92)'};
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: ${theme === 'dark' ? '#0e1420' : '#ffffff'};
             border-bottom: 1px solid var(--border-color);
             transition: background-color 0.2s ease, border-color 0.2s ease;
             display: flex;

@@ -80,7 +80,7 @@ export default function Dados() {
       <div className="dados-page-grid">
         
         {/* Formulário de Rendimentos (Esquerda) */}
-        <div className="modern-card">
+        <div className="modern-card dados-form-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <IconWallet size={18} color="var(--primary-color)" />
             <h3 style={{ fontSize: '1.05rem', margin: 0 }}>Atualizar Renda Mensal</h3>
@@ -148,7 +148,7 @@ export default function Dados() {
         </div>
 
         {/* Visão Consolidada & Análise (Direita) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className="dados-summary-col" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
           {/* Card: Detalhamento de Ganhos */}
           <div className="modern-card">

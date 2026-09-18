@@ -18,19 +18,17 @@ function AppLayout() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.style.colorScheme = theme;
+    const themeBg = theme === 'dark' ? '#090d16' : '#f8fafc';
+    document.documentElement.style.backgroundColor = themeBg;
+    document.body.style.backgroundColor = themeBg;
     localStorage.setItem('theme', theme);
     
-    // Atualiza as meta tags theme-color para navegadores mobile (Safari / Chrome)
-    const themeBg = theme === 'dark' ? '#090d16' : '#f8fafc';
-    const metaThemeColors = document.querySelectorAll('meta[name="theme-color"]');
-    if (metaThemeColors.length > 0) {
-      metaThemeColors.forEach(meta => meta.setAttribute('content', themeBg));
-    } else {
-      const newMeta = document.createElement('meta');
-      newMeta.name = 'theme-color';
-      newMeta.content = themeBg;
-      document.head.appendChild(newMeta);
-    }
+    // Atualiza a meta tag theme-color para navegadores mobile (Safari / Chrome) sem conflito de media queries
+    document.querySelectorAll('meta[name="theme-color"]').forEach(meta => meta.remove());
+    const newMeta = document.createElement('meta');
+    newMeta.name = 'theme-color';
+    newMeta.content = themeBg;
+    document.head.appendChild(newMeta);
     
     // Diz ao aplicativo nativo (iOS/Android) para expandir e cobrir a área da bateria/notch
     if (Capacitor.isNativePlatform()) {

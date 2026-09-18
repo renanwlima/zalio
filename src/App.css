@@ -243,13 +243,6 @@ html, body {
     width: 100%;
     box-sizing: border-box;
   }
-
-  .dados-page-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    width: 100%;
-  }
 }
 
 /* --- REGRAS ESPECÍFICAS PARA TABLETS E CELULARES (<= 768px) --- */
@@ -684,6 +677,20 @@ select.input-field {
   grid-template-columns: minmax(320px, 420px) 1fr;
   gap: 1.5rem;
   align-items: start;
+  width: 100%;
+}
+
+.dados-form-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dados-summary-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .dados-metrics-grid {
@@ -691,6 +698,22 @@ select.input-field {
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
   margin-bottom: 1rem;
+}
+
+@media (max-width: 960px) {
+  .dados-page-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.25rem !important;
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dados-metrics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
 }
 
 /* --- Barra Superior do Histórico (Centralizada) --- */
