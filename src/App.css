@@ -243,6 +243,13 @@ html, body {
     width: 100%;
     box-sizing: border-box;
   }
+
+  .dados-page-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+  }
 }
 
 /* --- REGRAS ESPECÍFICAS PARA TABLETS E CELULARES (<= 768px) --- */
@@ -389,6 +396,12 @@ html, body {
   .budget-title,
   .budget-values {
     font-size: 0.78rem;
+  }
+
+  /* 6. Meus Dados Financeiros em telas menores */
+  .dados-metrics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
   }
 }
 
@@ -663,6 +676,54 @@ select.input-field {
   flex-shrink: 0;
   margin-top: 0.85rem;
   width: 100%;
+}
+
+/* --- Tela Meus Dados Financeiros --- */
+.dados-page-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.dados-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* --- Barra Superior do Histórico (Centralizada) --- */
+.history-top-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  text-align: center;
+}
+
+.history-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.history-summary-badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.history-badge-item {
+  box-shadow: var(--shadow-sm);
 }
 
 /* --- Grid Compacto de KPIs (Dashboard) --- */

@@ -77,7 +77,7 @@ export default function Dados() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 420px) 1fr', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="dados-page-grid">
         
         {/* Formulário de Rendimentos (Esquerda) */}
         <div className="modern-card">
@@ -192,7 +192,7 @@ export default function Dados() {
               <h3 style={{ fontSize: '1.05rem', margin: 0 }}>Comprometimento da Renda</h3>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+            <div className="dados-metrics-grid">
               <div style={{ padding: '0.75rem', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600 }}>
                   Despesas Fixas

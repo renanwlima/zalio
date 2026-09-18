@@ -144,19 +144,9 @@ export default function History() {
   return (
     <div className="container-fit" style={{ maxWidth: '1140px', margin: '0 auto', width: '100%' }}>
       {/* Top Header */}
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '1rem',
-        marginBottom: '0.85rem',
-        paddingBottom: '0.65rem',
-        borderBottom: '1px solid var(--border-color)',
-        flexShrink: 0
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{
+      <div className="history-top-header">
+        <div className="history-month-nav">
+          <div className="calendar-nav-box" style={{
             display: 'flex',
             alignItems: 'center',
             background: 'var(--card-bg)',
@@ -212,7 +202,7 @@ export default function History() {
           {!isCurrentMonth && (
             <button 
               onClick={handleCurrentMonth}
-              className="btn-secondary"
+              className="btn-secondary btn-today"
               style={{ padding: '0.45rem 0.8rem', fontSize: '0.8rem' }}
             >
               Hoje
@@ -221,15 +211,15 @@ export default function History() {
         </div>
 
         {/* Resumo do Mês em Badges */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <div style={{ background: 'var(--success-light)', border: '1px solid var(--success-border)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        <div className="history-summary-badges">
+          <div className="history-badge-item" style={{ background: 'var(--success-light)', border: '1px solid var(--success-border)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Entradas:</span>
             <strong className="currency-val" style={{ color: 'var(--success-color)', fontSize: '0.92rem' }}>
               +{formatCurrency(totalEntradas)}
             </strong>
           </div>
 
-          <div style={{ background: 'var(--error-light)', border: '1px solid var(--error-border)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <div className="history-badge-item" style={{ background: 'var(--error-light)', border: '1px solid var(--error-border)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Saídas:</span>
             <strong className="currency-val" style={{ color: 'var(--error-color)', fontSize: '0.92rem' }}>
               -{formatCurrency(totalSaidas)}
