@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useData } from '../contexts/DataContext';
@@ -7,6 +7,83 @@ import {
   IconCheck, 
   IconLock
 } from '../components/Icons';
+
+// Retorna os feriados nacionais oficiais do Brasil para um determinado ano
+function getFeriadosNacionaisBrasil(ano) {
+  // Cálculo da Páscoa (Algoritmo Meeus/Jones/Butcher)
+  const a = ano % 19;
+  const b = Math.floor(ano / 100);
+  const c = ano % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mesPascoa = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+  const diaPascoa = ((h + l - 7 * m + 114) % 31) + 1;
+  const dataPascoa = new Date(ano, mesPascoa, diaPascoa);
+
+  const addDias = (data, dias) => {
+    const res = new Date(data);
+    res.setDate(res.getDate() + dias);
+    return res;
+  };
+
+  const carnaval = addDias(dataPascoa, -47);
+  const sextaSanta = addDias(dataPascoa, -2);
+  const corpusChristi = addDias(dataPascoa, 60);
+
+  const fmt = (d) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  return [
+    { key: '01-01', nome: 'Ano Novo' },
+    { key: fmt(carnaval), nome: 'Carnaval' },
+    { key: fmt(sextaSanta), nome: 'Sexta-feira Santa' },
+    { key: '04-21', nome: 'Tiradentes' },
+    { key: '05-01', nome: 'Dia do Trabalho' },
+    { key: fmt(corpusChristi), nome: 'Corpus Christi' },
+    { key: '09-07', nome: 'Independência do Brasil' },
+    { key: '10-12', nome: 'Nossa Senhora Aparecida' },
+    { key: '11-02', nome: 'Finados' },
+    { key: '11-15', nome: 'Proclamação da República' },
+    { key: '11-20', nome: 'Dia da Consciência Negra' },
+    { key: '12-25', nome: 'Natal' }
+  ];
+}
+
+// Calcula automaticamente os dias úteis (segunda a sexta) descontando feriados nacionais
+function calcularDiasUteisMesAtual() {
+  const now = new Date();
+  const ano = now.getFullYear();
+  const mes = now.getMonth();
+  const feriados = getFeriadosNacionaisBrasil(ano);
+  const totalDias = new Date(ano, mes + 1, 0).getDate();
+  let diasUteis = 0;
+  let diasSemana = 0;
+  const feriadosNoMes = [];
+
+  for (let dia = 1; dia <= totalDias; dia++) {
+    const data = new Date(ano, mes, dia);
+    const diaSemana = data.getDay(); // 0 = Domingo, 6 = Sábado
+    const key = `${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    const feriado = feriados.find(f => f.key === key);
+
+    if (diaSemana !== 0 && diaSemana !== 6) {
+      diasSemana++;
+      if (feriado) {
+        feriadosNoMes.push({ dia, nome: feriado.nome });
+      } else {
+        diasUteis++;
+      }
+    }
+  }
+
+  return { diasUteis, diasSemana, feriadosNoMes, totalDias };
+}
 
 export default function Dados() {
   const [salario, setSalario] = useState('');
@@ -17,25 +94,11 @@ export default function Dados() {
   const { dadosFinanceiros, despesasFixas, carregarTudo } = useData();
   const [hideValues, setHideValues] = useState(() => localStorage.getItem('hideValues') === 'true');
 
-  // Cálculo automático dos dias úteis (Segunda a Sexta) do mês atual
-  const getDiasUteisMesAtual = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const totalDays = new Date(year, month + 1, 0).getDate();
-    let count = 0;
-    for (let day = 1; day <= totalDays; day++) {
-      const d = new Date(year, month, day);
-      const dayOfWeek = d.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        count++;
-      }
-    }
-    return count;
-  };
-
-  const diasUteisPadrao = getDiasUteisMesAtual();
-  const nomeMesAtual = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  const infoDiasUteis = useMemo(() => calcularDiasUteisMesAtual(), []);
+  const nomeMesAtual = useMemo(() => {
+    const s = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }, []);
 
   // Configuração de VR: 'fixo' ou 'diario'
   const vrConfigStorageKey = user?.sub ? `zalio_vr_config_${user.sub}` : 'zalio_vr_config';
@@ -50,7 +113,10 @@ export default function Dados() {
 
   const [vrTipo, setVrTipo] = useState(() => vrConfigState?.tipo || 'fixo'); // 'fixo' | 'diario'
   const [vrValorDiario, setVrValorDiario] = useState(() => (vrConfigState?.valorDiario ? String(vrConfigState.valorDiario) : ''));
-  const [vrDiasUteis, setVrDiasUteis] = useState(() => vrConfigState?.diasUteis || diasUteisPadrao);
+  const [ajusteManual, setAjusteManual] = useState(() => Boolean(vrConfigState?.ajusteManual));
+  const [vrDiasManual, setVrDiasManual] = useState(() => vrConfigState?.diasManual || infoDiasUteis.diasUteis);
+
+  const diasUteisFinais = ajusteManual ? (Number(vrDiasManual) || infoDiasUteis.diasUteis) : infoDiasUteis.diasUteis;
 
   useEffect(() => {
     if (user?.sub) {
@@ -61,7 +127,8 @@ export default function Dados() {
           setVrConfigState(parsed);
           if (parsed.tipo) setVrTipo(parsed.tipo);
           if (parsed.valorDiario) setVrValorDiario(String(parsed.valorDiario));
-          if (parsed.diasUteis) setVrDiasUteis(parsed.diasUteis);
+          if (parsed.diasManual) setVrDiasManual(parsed.diasManual);
+          if (typeof parsed.ajusteManual === 'boolean') setAjusteManual(parsed.ajusteManual);
         }
       } catch (err) {
         console.error(err);
@@ -85,7 +152,7 @@ export default function Dados() {
   };
 
   const valorDiarioNum = Number(vrValorDiario) || Number(vrConfigState?.valorDiario) || 0;
-  const vrCalculado = valorDiarioNum * (Number(vrDiasUteis) || diasUteisPadrao);
+  const vrCalculado = valorDiarioNum * diasUteisFinais;
 
   const resumoSalario = Number(dadosFinanceiros?.[0]?.salario || 0);
   const resumoVa = Number(dadosFinanceiros?.[0]?.va || 0);
@@ -119,8 +186,10 @@ export default function Dados() {
     } else {
       const novaConfig = {
         tipo: vrTipo,
-        valorDiario: vrTipo === 'diario' ? (Number(vrValorDiario) || Number(vrConfigState?.valorDiario) || 0) : 0,
-        diasUteis: vrTipo === 'diario' ? vrDiasUteis : diasUteisPadrao
+        valorDiario: vrTipo === 'diario' ? valorDiarioNum : 0,
+        ajusteManual,
+        diasManual: vrDiasManual,
+        diasUteis: diasUteisFinais
       };
       localStorage.setItem(vrConfigStorageKey, JSON.stringify(novaConfig));
       setVrConfigState(novaConfig);
@@ -264,10 +333,10 @@ export default function Dados() {
                   placeholder={resumoVr > 0 ? formatCurrency(resumoVr).replace('R$', '').trim() : '0.00'} 
                 />
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div>
-                    <label htmlFor="vrDiario" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                      Valor pago por dia útil (R$)
+                    <label htmlFor="vrDiario" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      Valor pago por dia trabalhado (R$)
                     </label>
                     <input 
                       id="vrDiario"
@@ -280,78 +349,175 @@ export default function Dados() {
                     />
                   </div>
 
+                  {/* Card de Cálculo 100% Automático */}
                   <div style={{
-                    background: 'var(--bg-subtle)',
-                    padding: '0.65rem 0.85rem',
+                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.03) 100%)',
+                    padding: '0.85rem 1rem',
                     borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--border-color)',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '0.45rem'
+                    gap: '0.55rem'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                        Dias úteis ({nomeMesAtual}):
-                      </span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <button
-                          type="button"
-                          onClick={() => setVrDiasUteis(d => Math.max(1, d - 1))}
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
-                            border: '1px solid var(--border-color)',
-                            background: 'var(--card-bg)',
-                            color: 'var(--text-main)',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          -
-                        </button>
-                        <span style={{ fontWeight: 700, fontSize: '0.9rem', minWidth: '24px', textAlign: 'center', color: 'var(--text-main)' }}>
-                          {vrDiasUteis}
+                    {/* Header do card com badge de automático */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <span style={{
+                          background: '#10b981',
+                          color: '#fff',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          padding: '0.18rem 0.5rem',
+                          borderRadius: '12px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em'
+                        }}>
+                          ⚡ Cálculo 100% Automático
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => setVrDiasUteis(d => Math.min(31, d + 1))}
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '6px',
-                            border: '1px solid var(--border-color)',
-                            background: 'var(--card-bg)',
-                            color: 'var(--text-main)',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          +
-                        </button>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                          {nomeMesAtual}
+                        </span>
                       </div>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#10b981' }}>
+                        {diasUteisFinais} dias úteis
+                      </span>
                     </div>
 
+                    {/* Detalhamento dos feriados nacionais descontados */}
+                    <div style={{
+                      fontSize: '0.74rem',
+                      color: 'var(--text-secondary)',
+                      lineHeight: 1.4,
+                      background: 'var(--card-bg)',
+                      padding: '0.45rem 0.65rem',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-color)'
+                    }}>
+                      {infoDiasUteis.feriadosNoMes.length > 0 ? (
+                        <>
+                          <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Feriados nacionais descontados: </span>
+                          {infoDiasUteis.feriadosNoMes.map(f => `${f.nome} (dia ${String(f.dia).padStart(2, '0')})`).join(', ')}.
+                        </>
+                      ) : (
+                        <>Descontados automaticamente sábados e domingos do mês (sem feriados nacionais em dias de semana).</>
+                      )}
+                    </div>
+
+                    {/* Resumo do Total */}
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      borderTop: '1px solid var(--border-color)',
-                      paddingTop: '0.4rem'
+                      borderTop: '1px solid rgba(16, 185, 129, 0.2)',
+                      paddingTop: '0.45rem'
                     }}>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                        Total calculado ({vrDiasUteis}d × {formatCurrency(valorDiarioNum)}):
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                        Total estimado no mês:
                       </span>
-                      <strong className="currency-val" style={{ fontSize: '0.95rem', color: '#10b981' }}>
+                      <strong className="currency-val" style={{ fontSize: '1.05rem', color: '#10b981' }}>
                         {formatCurrency(vrCalculado)}
                       </strong>
                     </div>
+
+                    {/* Opção sutil para quem precisa de ajuste manual específico */}
+                    <div style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '0.35rem', textAlign: 'right' }}>
+                      {!ajusteManual ? (
+                        <button
+                          type="button"
+                          onClick={() => setAjusteManual(true)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            color: 'var(--text-muted)',
+                            fontSize: '0.72rem',
+                            cursor: 'pointer',
+                            textDecoration: 'underline'
+                          }}
+                        >
+                          Teve folga, férias ou escala diferente? Ajustar dias
+                        </button>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.2rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                            Dias personalizados:
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <button
+                              type="button"
+                              onClick={() => setVrDiasManual(d => Math.max(0, Number(d) - 1))}
+                              style={{
+                                width: '26px',
+                                height: '26px',
+                                borderRadius: '4px',
+                                border: '1px solid var(--border-color)',
+                                background: 'var(--card-bg)',
+                                color: 'var(--text-main)',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              value={vrDiasManual}
+                              onChange={(e) => setVrDiasManual(Math.max(0, Math.min(31, parseInt(e.target.value) || 0)))}
+                              style={{
+                                width: '42px',
+                                height: '26px',
+                                textAlign: 'center',
+                                padding: 0,
+                                margin: 0,
+                                fontSize: '0.85rem',
+                                fontWeight: 700
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setVrDiasManual(d => Math.min(31, Number(d) + 1))}
+                              style={{
+                                width: '26px',
+                                height: '26px',
+                                borderRadius: '4px',
+                                border: '1px solid var(--border-color)',
+                                background: 'var(--card-bg)',
+                                color: 'var(--text-main)',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              +
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAjusteManual(false);
+                                setVrDiasManual(infoDiasUteis.diasUteis);
+                              }}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--primary-color)',
+                                fontSize: '0.7rem',
+                                cursor: 'pointer',
+                                marginLeft: '0.4rem',
+                                textDecoration: 'underline'
+                              }}
+                            >
+                              Voltar ao automático
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </div>
               )}
@@ -390,7 +556,7 @@ export default function Dados() {
                   <div style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>Vale Refeição (VR)</div>
                   {vrConfigState?.tipo === 'diario' && vrConfigState?.valorDiario > 0 ? (
                     <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                      Modo diário: {vrConfigState.diasUteis || diasUteisPadrao} dias × {formatCurrency(vrConfigState.valorDiario)}/dia
+                      Modo diário: {vrConfigState.diasUteis || infoDiasUteis.diasUteis} dias × {formatCurrency(vrConfigState.valorDiario)}/dia
                     </span>
                   ) : (
                     <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
