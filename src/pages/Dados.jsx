@@ -56,11 +56,13 @@ function getFeriadosNacionaisBrasil(ano) {
 }
 
 // Calcula automaticamente os dias úteis (segunda a sexta) descontando feriados nacionais
-function calcularDiasUteisMesAtual() {
+function calcularDiasUteisMesAtual(feriadosCustom = null) {
   const now = new Date();
   const ano = now.getFullYear();
   const mes = now.getMonth();
-  const feriados = getFeriadosNacionaisBrasil(ano);
+  const feriados = (feriadosCustom && feriadosCustom.length > 0)
+    ? feriadosCustom
+    : getFeriadosNacionaisBrasil(ano);
   const totalDias = new Date(ano, mes + 1, 0).getDate();
   let diasUteis = 0;
   let diasSemana = 0;
@@ -82,7 +84,13 @@ function calcularDiasUteisMesAtual() {
     }
   }
 
-  return { diasUteis, diasSemana, feriadosNoMes, totalDias };
+  return { 
+    diasUteis, 
+    diasSemana, 
+    feriadosNoMes, 
+    totalDias,
+    isOnline: Boolean(feriadosCustom && feriadosCustom.length > 0)
+  };
 }
 
 export default function Dados() {
@@ -93,8 +101,32 @@ export default function Dados() {
   const { user } = useAuth0();
   const { dadosFinanceiros, despesasFixas, carregarTudo } = useData();
   const [hideValues, setHideValues] = useState(() => localStorage.getItem('hideValues') === 'true');
+  const [feriadosOnline, setFeriadosOnline] = useState(null);
 
-  const infoDiasUteis = useMemo(() => calcularDiasUteisMesAtual(), []);
+  // Busca feriados nacionais oficiais diretamente na internet via BrasilAPI
+  useEffect(() => {
+    const anoAtual = new Date().getFullYear();
+    fetch(`https://brasilapi.com.br/api/feriados/v1/${anoAtual}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const formatados = data.map(item => {
+            const parts = item.date.split('-'); // YYYY-MM-DD
+            return {
+              key: `${parts[1]}-${parts[2]}`,
+              nome: item.name
+            };
+          });
+          setFeriadosOnline(formatados);
+        }
+      })
+      .catch(err => {
+        // Se estiver sem internet ou a API falhar, o sistema usa o algoritmo local perfeitamente
+        console.warn('Usando calendário oficial local como fallback:', err);
+      });
+  }, []);
+
+  const infoDiasUteis = useMemo(() => calcularDiasUteisMesAtual(feriadosOnline), [feriadosOnline]);
   const nomeMesAtual = useMemo(() => {
     const s = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
     return s.charAt(0).toUpperCase() + s.slice(1);
@@ -401,6 +433,10 @@ export default function Dados() {
                       ) : (
                         <>Descontados automaticamente sábados e domingos do mês (sem feriados nacionais em dias de semana).</>
                       )}
+                      <div style={{ marginTop: '0.3rem', fontSize: '0.68rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <span>🌐</span>
+                        <span>{infoDiasUteis.isOnline ? 'Calendário sincronizado online via BrasilAPI' : 'Calendário oficial nacional integrado'}</span>
+                      </div>
                     </div>
 
                     {/* Resumo do Total */}
