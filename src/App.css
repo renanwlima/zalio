@@ -716,6 +716,99 @@ select.input-field {
   }
 }
 
+/* --- Controle Moderno de Dias Personalizados (VR) --- */
+.vr-manual-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  margin-top: 0.45rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.vr-stepper {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.vr-stepper-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text-main);
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  transition: all 0.15s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.vr-stepper-btn:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.vr-stepper-btn:active {
+  transform: scale(0.95);
+}
+
+.vr-stepper-input {
+  width: 38px;
+  height: 28px;
+  border: none !important;
+  background: transparent !important;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-main) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.vr-stepper-input::-webkit-outer-spin-button,
+.vr-stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.vr-reset-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  color: var(--primary-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.vr-reset-btn:hover {
+  background: rgba(16, 185, 129, 0.1);
+  text-decoration: underline;
+}
+
 /* --- Barra Superior do Histórico (Centralizada) --- */
 .history-top-header {
   display: flex;

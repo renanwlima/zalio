@@ -455,99 +455,78 @@ export default function Dados() {
                       </strong>
                     </div>
 
-                    {/* Opção sutil para quem precisa de ajuste manual específico */}
-                    <div style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '0.35rem', textAlign: 'right' }}>
+                    {/* Opção para quem precisa de ajuste manual específico */}
+                    <div style={{ borderTop: '1px dashed rgba(16, 185, 129, 0.25)', paddingTop: '0.45rem' }}>
                       {!ajusteManual ? (
-                        <button
-                          type="button"
-                          onClick={() => setAjusteManual(true)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                            color: 'var(--text-muted)',
-                            fontSize: '0.72rem',
-                            cursor: 'pointer',
-                            textDecoration: 'underline'
-                          }}
-                        >
-                          Teve folga, férias ou escala diferente? Ajustar dias
-                        </button>
+                        <div style={{ textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            onClick={() => setAjusteManual(true)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: 0,
+                              color: 'var(--text-muted)',
+                              fontSize: '0.74rem',
+                              cursor: 'pointer',
+                              textDecoration: 'underline'
+                            }}
+                          >
+                            Teve folga, férias ou escala diferente? Ajustar dias
+                          </button>
+                        </div>
                       ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.2rem' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-main)', fontWeight: 500 }}>
-                            Dias personalizados:
-                          </span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <div className="vr-manual-box">
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                              Dias no mês
+                            </span>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                              Substitui o cálculo automático ({infoDiasUteis.diasUteis}d)
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                            {/* Stepper moderno sem setas feias de navegador */}
+                            <div className="vr-stepper">
+                              <button
+                                type="button"
+                                className="vr-stepper-btn"
+                                onClick={() => setVrDiasManual(d => Math.max(0, Number(d) - 1))}
+                                title="Diminuir 1 dia"
+                              >
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                className="vr-stepper-input"
+                                value={vrDiasManual}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setVrDiasManual(isNaN(val) ? '' : Math.max(0, Math.min(31, val)));
+                                }}
+                              />
+                              <button
+                                type="button"
+                                className="vr-stepper-btn"
+                                onClick={() => setVrDiasManual(d => Math.min(31, Number(d) + 1))}
+                                title="Aumentar 1 dia"
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            {/* Botão de reset elegante */}
                             <button
                               type="button"
-                              onClick={() => setVrDiasManual(d => Math.max(0, Number(d) - 1))}
-                              style={{
-                                width: '26px',
-                                height: '26px',
-                                borderRadius: '4px',
-                                border: '1px solid var(--border-color)',
-                                background: 'var(--card-bg)',
-                                color: 'var(--text-main)',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              value={vrDiasManual}
-                              onChange={(e) => setVrDiasManual(Math.max(0, Math.min(31, parseInt(e.target.value) || 0)))}
-                              style={{
-                                width: '42px',
-                                height: '26px',
-                                textAlign: 'center',
-                                padding: 0,
-                                margin: 0,
-                                fontSize: '0.85rem',
-                                fontWeight: 700
-                              }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setVrDiasManual(d => Math.min(31, Number(d) + 1))}
-                              style={{
-                                width: '26px',
-                                height: '26px',
-                                borderRadius: '4px',
-                                border: '1px solid var(--border-color)',
-                                background: 'var(--card-bg)',
-                                color: 'var(--text-main)',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              +
-                            </button>
-                            <button
-                              type="button"
+                              className="vr-reset-btn"
                               onClick={() => {
                                 setAjusteManual(false);
                                 setVrDiasManual(infoDiasUteis.diasUteis);
                               }}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: 'var(--primary-color)',
-                                fontSize: '0.7rem',
-                                cursor: 'pointer',
-                                marginLeft: '0.4rem',
-                                textDecoration: 'underline'
-                              }}
+                              title="Restaurar dias calculados automaticamente"
                             >
-                              Voltar ao automático
+                              ↺ Resetar
                             </button>
                           </div>
                         </div>
